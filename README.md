@@ -77,6 +77,33 @@ venv/bin/python dashboard/dashboard.py
 # → http://localhost:5001
 ```
 
+## Using with Claude Code (or any AI assistant)
+
+The preferred way to use this project day-to-day is conversationally — no memorizing commands needed.
+
+```bash
+cd gmail-classifier
+claude   # Claude Code CLI, or open in Cursor / Windsurf / Copilot Chat
+```
+
+Then just ask in plain English:
+
+> "Fetch and classify a new batch"
+> "Show me what's pending deletion before I approve anything"
+> "Add a rule to archive all emails from @substack.com after 7 days"
+> "What school events are coming up in the next 2 weeks?"
+> "Run the daily pipeline and tell me what happened"
+
+The AI reads the files, runs the scripts, and reports back. It will never execute deletes without showing you the list first.
+
+See **[CLAUDE.md](CLAUDE.md)** for the full guide — example prompts, safety rules, model configuration, and which files the AI reads most often.
+
+### Choosing your AI model
+
+The interactive session (Claude Code etc.) uses whatever model you configure in your editor — this is separate from the classification model used by the scripts.
+
+For **script-level AI** (uncertain email classification, school events, job leads), the default is Claude Haiku. Change the `model=` parameter in `classify.py`, `extract_school_events.py`, or `extract_job_leads.py` to use any model you prefer — any Anthropic model works, and the scripts fall back gracefully to rule-only mode if no API key is set.
+
 ## Daily automation
 
 `daily_run.sh` runs the full pipeline: fetch new emails → classify → re-classify all batches (age gates fire on older emails) → execute safe actions → extract AI insights.
