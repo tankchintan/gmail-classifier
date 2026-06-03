@@ -59,6 +59,8 @@ RECLASSIFIED=0
 for CSV in "$PROJECT_ROOT/data/batch-"[0-9][0-9][0-9]".csv"; do
   [ -f "$CSV" ] || continue
   BATCH=$(basename "$CSV" .csv | sed 's/batch-//')
+  # Skip the batch we just classified with AI — re-running without AI would lose those results
+  [ "$BATCH" = "$NEXT_BATCH" ] && continue
   JSON="$PROJECT_ROOT/data/batch-$BATCH-classified.json"
   python "$PROJECT_ROOT/scripts/classify.py" \
     --input "$CSV" --output "$JSON" \
