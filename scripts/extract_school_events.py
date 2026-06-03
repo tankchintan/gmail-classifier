@@ -104,21 +104,12 @@ def _fetch_body(service, message_id: str) -> str:
 
 
 def _ai_client():
-    import anthropic
-    settings_path = Path.home() / '.claude' / 'settings.json'
-    if settings_path.exists():
-        settings = json.loads(settings_path.read_text())
-        base_url = settings.get('env', {}).get('ANTHROPIC_BASE_URL')
-        helper = settings.get('apiKeyHelper')
-        if helper and base_url:
-            token = subprocess.check_output(helper, shell=True, text=True,
-                                             stderr=subprocess.DEVNULL).strip()
-            if token:
-                return anthropic.Anthropic(api_key=token, base_url=base_url)
-    api_key = os.environ.get('ANTHROPIC_API_KEY', '')
-    if api_key:
-        return anthropic.Anthropic(api_key=api_key)
-    raise RuntimeError('No Anthropic credentials found')
+    import importlib.util
+    spec = importlib.util.spec_from_file_location(
+        'ai_client', str(CANONICAL_ROOT / 'scripts' / 'ai_client.py'))
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod.make_client()
 
 
 def extract_events(body: str, subject: str, email_date: str, client) -> list:

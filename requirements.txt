@@ -9,5 +9,5 @@ pandas==2.2.1
 # Progress tracking
 tqdm==4.66.2
 
-# Claude API (for --with-ai classify pass and AI insights extraction)
-anthropic>=0.28.0
+# LLM provider (supports Anthropic, OpenAI, Gemini, Groq, Ollama, and 100+ more)
+litellm>=1.40.0

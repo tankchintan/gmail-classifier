@@ -100,9 +100,9 @@ See **[CLAUDE.md](CLAUDE.md)** for the full guide — example prompts, safety ru
 
 ### Choosing your AI model
 
-The interactive session (Claude Code etc.) uses whatever model you configure in your editor — this is separate from the classification model used by the scripts.
+The interactive session (Claude Code etc.) uses whatever model you configure in your editor — this is separate from the model used by the scripts.
 
-For **script-level AI** (uncertain email classification, school events, job leads), the default is Claude Haiku. Change the `model=` parameter in `classify.py`, `extract_school_events.py`, or `extract_job_leads.py` to use any model you prefer — any Anthropic model works, and the scripts fall back gracefully to rule-only mode if no API key is set.
+For **script-level AI** (uncertain email classification, school events, job leads), set `GMAIL_AI_MODEL` to any [litellm-supported model string](https://docs.litellm.ai/docs/providers). The scripts fall back to rule-only mode if no API key is available.
 
 ## Daily automation
 
@@ -162,15 +162,36 @@ Re-classifying all batches daily means emails automatically age into archive as 
 
 ## AI features (optional)
 
-Set `ANTHROPIC_API_KEY` in your environment, or configure `apiKeyHelper` in `~/.claude/settings.json`.
+AI features use [litellm](https://github.com/BerriAI/litellm) — set `GMAIL_AI_MODEL` to any supported model string and the matching provider API key. Defaults to Claude Haiku if not set.
 
-| Feature | Flag/Script | What it does |
+```bash
+# Anthropic (default)
+export ANTHROPIC_API_KEY=sk-ant-...
+export GMAIL_AI_MODEL=claude-haiku-4-5-20251001
+
+# OpenAI
+export OPENAI_API_KEY=sk-...
+export GMAIL_AI_MODEL=gpt-4o-mini
+
+# Google Gemini
+export GEMINI_API_KEY=...
+export GMAIL_AI_MODEL=gemini/gemini-1.5-flash
+
+# Groq (fast + cheap)
+export GROQ_API_KEY=...
+export GMAIL_AI_MODEL=groq/llama-3.1-8b-instant
+
+# Local Ollama (free, no API key)
+export GMAIL_AI_MODEL=ollama/llama3
+```
+
+| Feature | How to invoke | What it does |
 |---|---|---|
-| Uncertain email review | `--with-ai` on `classify.py` | Sends emails < 0.75 confidence to Claude Haiku |
-| School calendar | `extract_school_events.py` | Extracts upcoming events from school newsletters |
+| Uncertain email review | `--with-ai` flag on `classify.py` | Sends emails < 0.75 confidence to LLM |
+| School calendar | `extract_school_events.py` | Extracts upcoming events from newsletters |
 | Job leads pipeline | `extract_job_leads.py` | Extracts role/company/comp from recruiter emails |
 
-Both extractors are idempotent — already-processed message IDs are skipped.
+All extractors are idempotent — already-processed message IDs are skipped on subsequent runs.
 
 ## Dashboard
 

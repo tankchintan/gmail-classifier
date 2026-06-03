@@ -545,7 +545,6 @@ def classify_with_ai(classification: Dict, email_meta: Dict, body: str, client) 
             body=body[:1500],
         )
         message = client.messages.create(
-            model='claude-haiku-4-5-20251001',
             max_tokens=256,
             messages=[{'role': 'user', 'content': prompt}],
         )
@@ -605,65 +604,19 @@ def run_body_pass(classifications: List[Dict], threshold: float = 0.75,
         print(f"  ⚠️  Could not authenticate for body fetch: {e}")
         return classifications
 
-    # Set up Haiku client if requested
+    # Set up AI client if requested
     ai_client = None
     if with_ai:
         try:
-            import anthropic, os, json as _json, subprocess
-
-            def _resolve_api_key():
-                """Try multiple sources for the Anthropic API key."""
-                # 1. Environment variable
-                key = os.environ.get('ANTHROPIC_API_KEY', '')
-                if key:
-                    return key, None, None
-
-                # 2. Project .env file
-                env_path = CANONICAL_ROOT / '.env'
-                if env_path.exists():
-                    for line in env_path.read_text().splitlines():
-                        if line.startswith('ANTHROPIC_API_KEY='):
-                            key = line.split('=', 1)[1].strip().strip('"\'')
-                            if key:
-                                return key, None, None
-
-                # 3. Claude Code settings.json — use gateway + apiKeyHelper
-                settings_path = Path.home() / '.claude' / 'settings.json'
-                if settings_path.exists():
-                    try:
-                        settings = _json.loads(settings_path.read_text())
-                        env_overrides = settings.get('env', {})
-                        base_url = env_overrides.get('ANTHROPIC_BASE_URL')
-                        helper = settings.get('apiKeyHelper')
-                        if helper and base_url:
-                            token = subprocess.check_output(
-                                helper, shell=True, text=True,
-                                stderr=subprocess.DEVNULL
-                            ).strip()
-                            if token:
-                                return token, base_url, env_overrides
-                    except Exception:
-                        pass
-
-                return None, None, None
-
-            api_key, base_url, env_overrides = _resolve_api_key()
-            if api_key:
-                kwargs = {'api_key': api_key}
-                if base_url:
-                    kwargs['base_url'] = base_url
-                # Pass through any extra env vars the gateway needs
-                if env_overrides:
-                    for k, v in env_overrides.items():
-                        if k not in ('ANTHROPIC_API_KEY', 'ANTHROPIC_BASE_URL'):
-                            os.environ.setdefault(k, v)
-                ai_client = anthropic.Anthropic(**kwargs)
-                src = 'Claude Code gateway' if base_url else 'API key'
-                print(f"  🤖 AI pass enabled (claude-haiku-4-5, via {src})")
-            else:
-                print(f"  ⚠️  --with-ai requested but no API key found — skipping AI pass")
-        except ImportError:
-            print(f"  ⚠️  anthropic package not installed — skipping AI pass")
+            import importlib.util as _ilu
+            _spec = _ilu.spec_from_file_location(
+                'ai_client', str(CANONICAL_ROOT / 'scripts' / 'ai_client.py'))
+            _mod = _ilu.module_from_spec(_spec)
+            _spec.loader.exec_module(_mod)
+            ai_client = _mod.make_client()
+            print(f"  🤖 AI pass enabled (model: {_mod.DEFAULT_MODEL})")
+        except Exception as e:
+            print(f"  ⚠️  AI client unavailable — skipping AI pass ({e})")
 
     updated = {c['message_id']: c for c in classifications}
     fetched = 0
