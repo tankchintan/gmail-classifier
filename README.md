@@ -2,7 +2,7 @@
 
 Rule-based Gmail inbox cleanup with Claude Haiku for uncertain emails, daily automation, and a local dashboard. Built to clear a personal inbox with 5,000+ unread emails — now runs daily via launchd.
 
-**No agents, no cloud infra, no subscription.** Runs entirely locally. Core features are free; AI features cost ~$0.04/run.
+**No agents, no cloud infra, no subscription.** Runs entirely locally. The rule-based classifier is completely free; AI features are optional and cost fractions of a cent on most days once your rules are tuned.
 
 ## Screenshots
 
@@ -14,6 +14,14 @@ Rule-based Gmail inbox cleanup with Claude Haiku for uncertain emails, daily aut
 
 ![All-time Stats top](docs/screenshots/dashboard-alltime-top.png)
 ![All-time Stats bottom](docs/screenshots/dashboard-alltime-bottom.png)
+
+**AI Insights — Jobs tab** — structured job leads extracted from recruiter emails
+
+![AI Insights Jobs](docs/screenshots/dashboard-ai-insights.png)
+
+**AI Insights — School tab** — upcoming school events extracted from newsletters
+
+![AI Insights School](docs/screenshots/dashboard-ai-school.png)
 
 ## What it does
 
@@ -29,7 +37,7 @@ Rule-based Gmail inbox cleanup with Claude Haiku for uncertain emails, daily aut
 ```
 fetch_unread.py  →  classify.py  →  execute_actions.py
                          ↓
-                   Claude Haiku           (optional, ~$0.04/run)
+                   LLM of your choice     (optional, fractions of a cent/run)
                    uncertain emails only
                          ↓
          extract_school_events.py / extract_job_leads.py
@@ -246,7 +254,7 @@ gmail-classifier/
 
 - Python 3.10+
 - Google Cloud project with Gmail API enabled
-- `anthropic` Python package + API key (only for AI features)
+- API key for your chosen LLM provider (only for AI features — optional)
 
 ## License
 
