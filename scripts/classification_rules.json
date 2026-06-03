@@ -1,0 +1,22 @@
+{
+  "whitelist_domains": [],
+  "blacklist_domains": [],
+  "newsletter_patterns": [
+    "unsubscribe",
+    "newsletter",
+    "weekly digest",
+    "daily brief"
+  ],
+  "receipt_patterns": [
+    "receipt",
+    "invoice",
+    "order confirmation",
+    "payment received"
+  ],
+  "spam_patterns": [
+    "you won",
+    "claim your prize",
+    "click here now",
+    "limited time offer"
+  ]
+}

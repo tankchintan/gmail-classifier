@@ -1,0 +1,54 @@
+name: gmail-initial-batch
+description: Conservative Day 0 workflow - fetch, classify, review, execute for one batch
+
+# This workflow processes ONE batch at a time (default 500 emails)
+# Run multiple instances in parallel for different batches during Day 0
+
+nodes:
+  fetch:
+    agent: gmail-fetcher
+    prompt: |
+      Fetch metadata for {{batch_size | default: 500}} unread Primary inbox emails.
+      Batch number: {{batch_number | default: "001"}}
+      Output CSV to: data/batch-{{batch_number | default: "001"}}.csv
+
+      Use offset: {{offset | default: 0}} to skip already-processed emails.
+
+      Print progress every 100 emails.
+
+  classify:
+    agent: gmail-classifier
+    needs: [fetch]
+    prompt: |
+      Classify emails from: $nodes.fetch.output_file
+
+      Analyze patterns and suggest actions with confidence scores.
+      Output JSON to: data/batch-{{batch_number | default: "001"}}-classified.json
+
+      Remember:
+      - Be conservative with confidence scores
+      - Never suggest delete unless confidence >= 0.95
+      - When uncertain, bias toward "keep" with low confidence
+
+  # Manual review gate - workflow pauses here
+  # User should inspect data/batch-XXX-classified.json before proceeding
+
+  review_checkpoint:
+    agent: gmail-classifier
+    needs: [classify]
+    prompt: |
+      Generate a human-readable summary of classifications from:
+      data/batch-{{batch_number | default: "001"}}-classified.json
+
+      Output markdown table to: data/batch-{{batch_number | default: "001"}}-review.md
+
+      Include:
+      - Total emails classified
+      - Breakdown by action (archive/delete/label/keep)
+      - Confidence distribution (how many at each confidence level)
+      - Top 10 actions (highest confidence first)
+      - All "delete" suggestions (for extra scrutiny)
+      - All actions with confidence < 0.70 (for manual review)
+
+# Execution step is NOT included in this workflow
+# User manually reviews, then runs gmail-actor separately if satisfied

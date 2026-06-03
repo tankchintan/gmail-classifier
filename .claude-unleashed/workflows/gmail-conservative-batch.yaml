@@ -1,0 +1,59 @@
+name: gmail-conservative-batch
+description: Ultra-conservative batch workflow - fetch and classify ONLY, no execution
+
+# This workflow does NOT execute any actions automatically
+# User must manually review and decide to execute
+
+nodes:
+  fetch:
+    agent: gmail-fetcher
+    prompt: |
+      Fetch metadata for {{batch_size | default: 500}} unread Primary inbox emails.
+      Batch number: {{batch_number | default: "001"}}
+      Output CSV to: data/batch-{{batch_number | default: "001"}}.csv
+
+      Use offset: {{offset | default: 0}} to skip already-processed emails.
+
+      Print progress every 100 emails.
+
+  classify:
+    agent: gmail-classifier
+    needs: [fetch]
+    prompt: |
+      Classify emails from: $nodes.fetch.output_file
+
+      ULTRA-CONSERVATIVE MODE:
+      - Be very cautious with confidence scores
+      - Suggest "delete" ONLY for obvious spam (limit to 10 suggestions max)
+      - When uncertain, suggest "archive" or "keep"
+      - For emails from real people, always suggest "keep"
+
+      Output JSON to: data/batch-{{batch_number | default: "001"}}-classified.json
+
+  summary:
+    agent: gmail-classifier
+    needs: [classify]
+    prompt: |
+      Generate a human-readable summary from: $nodes.classify.output_file
+
+      Output markdown to: data/batch-{{batch_number | default: "001"}}-summary.md
+
+      Include:
+      ## Summary
+      - Total emails classified
+      - Breakdown by action (archive/delete/label/keep)
+      - Confidence distribution
+
+      ## High Confidence Actions (≥0.81)
+      Top 20 actions that would be executed automatically
+
+      ## Delete Suggestions (ALL)
+      List every suggested delete with subject, sender, reasoning
+
+      ## Low Confidence (needs manual review)
+      Actions with confidence < 0.70
+
+      ## Recommendation
+      Should the user proceed with execution? Any concerns?
+
+# No execution node - user must run gmail-actor separately after manual review

@@ -1,0 +1,74 @@
+name: gmail-daily-process
+description: Ongoing daily workflow - fetch new unread emails, classify, execute high-confidence actions, audit
+
+# This workflow is for ONGOING processing after Day 0 is complete
+# Confidence threshold: 0.81 (configurable via input)
+
+nodes:
+  fetch:
+    agent: gmail-fetcher
+    prompt: |
+      Fetch metadata for ALL new unread Primary inbox emails (no limit).
+      Output CSV to: data/daily-{{timestamp}}.csv
+
+      Print progress every 100 emails.
+
+  classify:
+    agent: gmail-classifier
+    needs: [fetch]
+    prompt: |
+      Classify emails from: $nodes.fetch.output_file
+
+      Output JSON to: data/daily-{{timestamp}}-classified.json
+
+      Be conservative but consistent with learned patterns from:
+      - scripts/classification_rules.json (if exists)
+      - Previous audit feedback
+
+  high_confidence_actions:
+    agent: gmail-actor
+    needs: [classify]
+    prompt: |
+      Execute ONLY actions from: $nodes.classify.output_file
+      where confidence >= {{confidence_threshold | default: 0.81}}
+
+      EXTRA SAFETY:
+      - Delete actions require confidence >= 0.95 (overrides threshold)
+
+      Log every action to: logs/actions-{{timestamp}}.jsonl
+
+      Print summary at completion:
+      - Total actions executed
+      - Breakdown by action type
+      - Any errors encountered
+
+  low_confidence_review:
+    agent: gmail-classifier
+    needs: [classify]
+    prompt: |
+      Generate report of actions with confidence < {{confidence_threshold | default: 0.81}}
+      from: $nodes.classify.output_file
+
+      Output markdown table to: data/daily-{{timestamp}}-low-confidence.md
+
+      Include:
+      - Email subject, sender, suggested action, confidence, reasoning
+      - Sort by confidence descending (highest uncertain actions first)
+      - Flag any that might be important (keywords: urgent, question, client, etc.)
+
+      This is for human review - user will manually decide on these.
+
+  audit:
+    agent: gmail-auditor
+    needs: [high_confidence_actions]
+    prompt: |
+      Review actions from: $nodes.high_confidence_actions.log_file
+
+      Generate audit report to: audit-reports/audit-{{timestamp}}.md
+
+      Focus on:
+      - Were high-confidence actions correct?
+      - Any patterns of mistakes?
+      - Suggestions for rule improvements
+
+      Include comparison to previous audit if available.

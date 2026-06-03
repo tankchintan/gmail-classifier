@@ -1,0 +1,10 @@
+# Gmail API
+google-api-python-client==2.122.0
+google-auth-httplib2==0.2.0
+google-auth-oauthlib==1.2.0
+
+# Data processing
+pandas==2.2.1
+
+# Progress tracking
+tqdm==4.66.2

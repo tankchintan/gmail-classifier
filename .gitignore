@@ -1,0 +1,33 @@
+# OAuth credentials and tokens (NEVER commit these!)
+credentials.json
+token.pickle
+
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Data and logs (too large / sensitive)
+data/*.csv
+data/*.json
+logs/*.jsonl
+audit-reports/*.md
+
+# But keep directories
+!data/.gitkeep
+!logs/.gitkeep
+!audit-reports/.gitkeep
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
