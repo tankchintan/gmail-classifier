@@ -39,58 +39,58 @@
   ],
   "sender_rules": [
     {
-      "_note": "=== SAFETY OVERRIDES — evaluated FIRST, before any domain rules ==="
+      "_note": "=== SAFETY OVERRIDES \u2014 evaluated FIRST, before any domain rules ==="
     },
     {
-      "_note": "Chase fraud/action alerts — must stay in inbox regardless of age",
+      "_note": "Chase fraud/action alerts \u2014 must stay in inbox regardless of age",
       "from_match": "@chase.com",
       "subject_match": "action needed",
       "action": "keep",
       "confidence": 0.98,
-      "reasoning": "Chase action-required alert — keep in inbox"
+      "reasoning": "Chase action-required alert \u2014 keep in inbox"
     },
     {
       "from_match": "@chase.com",
       "subject_match": "fraud",
       "action": "keep",
       "confidence": 0.98,
-      "reasoning": "Chase fraud alert — keep in inbox"
+      "reasoning": "Chase fraud alert \u2014 keep in inbox"
     },
     {
       "from_match": "@chase.com",
       "subject_match": "suspicious",
       "action": "keep",
       "confidence": 0.98,
-      "reasoning": "Chase suspicious activity alert — keep in inbox"
+      "reasoning": "Chase suspicious activity alert \u2014 keep in inbox"
     },
     {
       "from_match": "@chase.com",
       "subject_match": "unauthorized",
       "action": "keep",
       "confidence": 0.98,
-      "reasoning": "Chase unauthorized activity alert — keep in inbox"
+      "reasoning": "Chase unauthorized activity alert \u2014 keep in inbox"
     },
     {
-      "_note": "Rachio / Groupon security login alerts — must come before marketing-delete rule",
+      "_note": "Rachio / Groupon security login alerts \u2014 must come before marketing-delete rule",
       "from_match": "@rachio.com",
       "subject_match": "login",
       "action": "keep",
       "confidence": 0.97,
-      "reasoning": "Rachio login security alert — keep"
+      "reasoning": "Rachio login security alert \u2014 keep"
     },
     {
       "from_match": "@r.groupon.com",
       "subject_match": "log in",
       "action": "keep",
       "confidence": 0.97,
-      "reasoning": "Groupon login security alert — keep"
+      "reasoning": "Groupon login security alert \u2014 keep"
     },
     {
       "from_match": "@r.groupon.com",
       "subject_match": "login",
       "action": "keep",
       "confidence": 0.97,
-      "reasoning": "Groupon login security alert — keep"
+      "reasoning": "Groupon login security alert \u2014 keep"
     },
     {
       "_note": "Rachio operational alerts (rain skip / watering / schedule / seasonal) = real, not marketing. Keep recent, label Home and archive after 30d unread.",
@@ -101,14 +101,14 @@
       "label": "Home",
       "archive_after_label": true,
       "confidence": 0.92,
-      "reasoning": "Rachio rain skip alert >=30 days unread — label Home and archive"
+      "reasoning": "Rachio rain skip alert >=30 days unread \u2014 label Home and archive"
     },
     {
       "from_match": "@rachio.com",
       "subject_match": "rain skip",
       "action": "keep",
       "confidence": 0.92,
-      "reasoning": "Rachio rain skip alert — real sprinkler notification, keep"
+      "reasoning": "Rachio rain skip alert \u2014 real sprinkler notification, keep"
     },
     {
       "from_match": "@rachio.com",
@@ -118,14 +118,14 @@
       "label": "Home",
       "archive_after_label": true,
       "confidence": 0.88,
-      "reasoning": "Rachio watering alert >=30 days unread — label Home and archive"
+      "reasoning": "Rachio watering alert >=30 days unread \u2014 label Home and archive"
     },
     {
       "from_match": "@rachio.com",
       "subject_match": "watering",
       "action": "keep",
       "confidence": 0.88,
-      "reasoning": "Rachio watering alert — operational notification, keep"
+      "reasoning": "Rachio watering alert \u2014 operational notification, keep"
     },
     {
       "from_match": "@rachio.com",
@@ -133,14 +133,14 @@
       "min_age_days": 7,
       "action": "archive",
       "confidence": 0.85,
-      "reasoning": "Rachio schedule change ≥7 days unread — archive"
+      "reasoning": "Rachio schedule change \u22657 days unread \u2014 archive"
     },
     {
       "from_match": "@rachio.com",
       "subject_match": "schedule",
       "action": "keep",
       "confidence": 0.85,
-      "reasoning": "Rachio schedule change — operational, keep"
+      "reasoning": "Rachio schedule change \u2014 operational, keep"
     },
     {
       "from_match": "@rachio.com",
@@ -148,63 +148,63 @@
       "min_age_days": 7,
       "action": "archive",
       "confidence": 0.85,
-      "reasoning": "Rachio seasonal shift ≥7 days unread — archive"
+      "reasoning": "Rachio seasonal shift \u22657 days unread \u2014 archive"
     },
     {
       "from_match": "@rachio.com",
       "subject_match": "seasonal",
       "action": "keep",
       "confidence": 0.85,
-      "reasoning": "Rachio seasonal shift — operational, keep"
+      "reasoning": "Rachio seasonal shift \u2014 operational, keep"
     },
     {
       "from_match": "@rachio.com",
       "subject_match": "weather",
       "action": "keep",
       "confidence": 0.88,
-      "reasoning": "Rachio weather adjustment alert — operational, keep"
+      "reasoning": "Rachio weather adjustment alert \u2014 operational, keep"
     },
     {
       "from_match": "@rachio.com",
       "subject_match": "heat",
       "action": "keep",
       "confidence": 0.88,
-      "reasoning": "Rachio heat wave adjustment — operational, keep"
+      "reasoning": "Rachio heat wave adjustment \u2014 operational, keep"
     },
     {
       "from_match": "@rachio.com",
       "subject_match": "freeze",
       "action": "keep",
       "confidence": 0.88,
-      "reasoning": "Rachio freeze alert — operational, keep"
+      "reasoning": "Rachio freeze alert \u2014 operational, keep"
     },
     {
       "from_match": "@rachio.com",
       "subject_match": "spring",
       "action": "keep",
       "confidence": 0.85,
-      "reasoning": "Rachio spring start — operational seasonal notification, keep"
+      "reasoning": "Rachio spring start \u2014 operational seasonal notification, keep"
     },
     {
       "from_match": "@rachio.com",
       "subject_match": "summer",
       "action": "keep",
       "confidence": 0.85,
-      "reasoning": "Rachio summer start — operational seasonal notification, keep"
+      "reasoning": "Rachio summer start \u2014 operational seasonal notification, keep"
     },
     {
       "from_match": "@rachio.com",
       "subject_match": "fall",
       "action": "keep",
       "confidence": 0.85,
-      "reasoning": "Rachio fall start — operational seasonal notification, keep"
+      "reasoning": "Rachio fall start \u2014 operational seasonal notification, keep"
     },
     {
       "from_match": "@rachio.com",
       "subject_match": "winter",
       "action": "keep",
       "confidence": 0.85,
-      "reasoning": "Rachio winter start — operational seasonal notification, keep"
+      "reasoning": "Rachio winter start \u2014 operational seasonal notification, keep"
     },
     {
       "_note": "Google Takeout: keep if recent (link still valid), archive if old",
@@ -213,7 +213,7 @@
       "max_age_days": 30,
       "action": "keep",
       "confidence": 0.85,
-      "reasoning": "Recent Takeout export — download link likely still valid"
+      "reasoning": "Recent Takeout export \u2014 download link likely still valid"
     },
     {
       "from_match": "noreply@google.com",
@@ -221,14 +221,14 @@
       "min_age_days": 31,
       "action": "archive",
       "confidence": 0.92,
-      "reasoning": "Old Takeout export — link has expired, archive"
+      "reasoning": "Old Takeout export \u2014 link has expired, archive"
     },
     {
-      "_note": "Google Calendar — birthdays and event reminders are signal, KEEP",
+      "_note": "Google Calendar \u2014 birthdays and event reminders are signal, KEEP",
       "from_match": "calendar-notification@google.com",
       "action": "keep",
       "confidence": 0.9,
-      "reasoning": "Calendar reminder — keep visible until event passes",
+      "reasoning": "Calendar reminder \u2014 keep visible until event passes",
       "max_age_days": 13
     },
     {
@@ -236,28 +236,28 @@
       "from_match": "@msr-cmt.org",
       "action": "keep",
       "confidence": 0.85,
-      "reasoning": "Academic conference (CMT) — user submits papers"
+      "reasoning": "Academic conference (CMT) \u2014 user submits papers"
     },
     {
       "from_match": "@easychair.org",
       "action": "keep",
       "confidence": 0.85,
-      "reasoning": "Academic conference (EasyChair) — user submits papers"
+      "reasoning": "Academic conference (EasyChair) \u2014 user submits papers"
     },
     {
       "from_match": "@openreview.net",
       "action": "keep",
       "confidence": 0.85,
-      "reasoning": "Academic conference (OpenReview) — user submits papers"
+      "reasoning": "Academic conference (OpenReview) \u2014 user submits papers"
     },
     {
-      "_note": "IEEE marketing — auto-archive into Memberships",
+      "_note": "IEEE marketing \u2014 auto-archive into Memberships",
       "from_match": "@deliver.ieee.org",
       "action": "label",
       "label": "Memberships",
       "archive_after_label": true,
       "confidence": 0.92,
-      "reasoning": "IEEE member-org marketing — label and archive"
+      "reasoning": "IEEE member-org marketing \u2014 label and archive"
     },
     {
       "from_match": "@ieee.org",
@@ -265,14 +265,14 @@
       "label": "Memberships",
       "archive_after_label": true,
       "confidence": 0.85,
-      "reasoning": "IEEE org email — label as membership and archive"
+      "reasoning": "IEEE org email \u2014 label as membership and archive"
     },
     {
-      "_note": "Mozilla Firefox newsletter — true marketing, delete",
+      "_note": "Mozilla Firefox newsletter \u2014 true marketing, delete",
       "from_match": "firefox@mail.mozilla.org",
       "action": "delete",
       "confidence": 0.95,
-      "reasoning": "Mozilla Foundation newsletter — content marketing, not requested"
+      "reasoning": "Mozilla Foundation newsletter \u2014 content marketing, not requested"
     },
     {
       "_note": "Chase: label always; archive once user has had time to see it",
@@ -282,7 +282,7 @@
       "label": "Bank/Chase",
       "archive_after_label": true,
       "confidence": 0.9,
-      "reasoning": "Chase notification ≥7 days old — label and archive"
+      "reasoning": "Chase notification \u22657 days old \u2014 label and archive"
     },
     {
       "from_match": "@chase.com",
@@ -291,31 +291,31 @@
       "label": "Bank/Chase",
       "archive_after_label": false,
       "confidence": 0.8,
-      "reasoning": "Recent Chase notification — label but leave in inbox"
+      "reasoning": "Recent Chase notification \u2014 label but leave in inbox"
     },
     {
-      "_note": "WageWorks Commuter benefit reminders — routine, archive",
+      "_note": "WageWorks Commuter benefit reminders \u2014 routine, archive",
       "from_match": "servicenotice@wageworks.com",
       "subject_match": "commuter",
       "action": "archive",
       "confidence": 0.88,
-      "reasoning": "WageWorks commuter benefit reminder — routine, no action needed"
+      "reasoning": "WageWorks commuter benefit reminder \u2014 routine, no action needed"
     },
     {
       "from_match": "servicenotice@wageworks.com",
       "subject_match": "benefit month",
       "action": "archive",
       "confidence": 0.88,
-      "reasoning": "WageWorks benefit-month reminder — routine"
+      "reasoning": "WageWorks benefit-month reminder \u2014 routine"
     },
     {
-      "_note": "IETE governing council / member org — auto-archive into Memberships",
+      "_note": "IETE governing council / member org \u2014 auto-archive into Memberships",
       "from_match": "@iete.org",
       "action": "label",
       "label": "Memberships",
       "archive_after_label": true,
       "confidence": 0.9,
-      "reasoning": "IETE member-org email — label and archive"
+      "reasoning": "IETE member-org email \u2014 label and archive"
     },
     {
       "from_match": "@ngauge.co.in",
@@ -324,61 +324,61 @@
       "label": "Memberships",
       "archive_after_label": true,
       "confidence": 0.88,
-      "reasoning": "IETE notice via ngauge — label and archive"
+      "reasoning": "IETE notice via ngauge \u2014 label and archive"
     },
     {
-      "_note": "LinkedIn editorial / newsletter spam — delete",
+      "_note": "LinkedIn editorial / newsletter spam \u2014 delete",
       "from_match": "editors-noreply@linkedin.com",
       "action": "delete",
       "confidence": 0.93,
-      "reasoning": "LinkedIn editorial newsletter — content marketing, not connection-related"
+      "reasoning": "LinkedIn editorial newsletter \u2014 content marketing, not connection-related"
     },
     {
       "from_match": "news-noreply@linkedin.com",
       "action": "delete",
       "confidence": 0.93,
-      "reasoning": "LinkedIn news newsletter — content marketing"
+      "reasoning": "LinkedIn news newsletter \u2014 content marketing"
     },
     {
-      "_note": "Kaiser Permanente prescription/appointment notifications — keep recent (time-sensitive), archive after 14 days",
+      "_note": "Kaiser Permanente prescription/appointment notifications \u2014 keep recent (time-sensitive), archive after 14 days",
       "from_match": "kp-donotreply",
       "max_age_days": 13,
       "action": "keep",
       "confidence": 0.88,
-      "reasoning": "Kaiser Permanente notification — health-related, time-sensitive"
+      "reasoning": "Kaiser Permanente notification \u2014 health-related, time-sensitive"
     },
     {
       "from_match": "kp-donotreply",
       "min_age_days": 14,
       "action": "archive",
       "confidence": 0.85,
-      "reasoning": "Kaiser Permanente notification ≥14 days unread — past relevance, archive"
+      "reasoning": "Kaiser Permanente notification \u226514 days unread \u2014 past relevance, archive"
     },
     {
-      "_note": "GlobalGiving project reports — informational only, delete",
+      "_note": "GlobalGiving project reports \u2014 informational only, delete",
       "from_match": "@globalgiving.org",
       "action": "delete",
       "confidence": 0.9,
-      "reasoning": "GlobalGiving project report — informational, no action needed"
+      "reasoning": "GlobalGiving project report \u2014 informational, no action needed"
     },
     {
-      "_note": "IEEE SusTech / enotice subdomain — same Memberships rule",
+      "_note": "IEEE SusTech / enotice subdomain \u2014 same Memberships rule",
       "from_match": "@enotice.ieee.org",
       "action": "label",
       "label": "Memberships",
       "archive_after_label": true,
       "confidence": 0.92,
-      "reasoning": "IEEE member-org email (enotice) — label and archive"
+      "reasoning": "IEEE member-org email (enotice) \u2014 label and archive"
     },
     {
-      "_note": "Axis Bank debit/credit alerts — same pattern as Chase",
+      "_note": "Axis Bank debit/credit alerts \u2014 same pattern as Chase",
       "from_match": "alerts@axis.bank.in",
       "min_age_days": 7,
       "action": "label",
       "label": "Bank/Axis",
       "archive_after_label": true,
       "confidence": 0.9,
-      "reasoning": "Axis Bank alert ≥7 days unread — label and archive"
+      "reasoning": "Axis Bank alert \u22657 days unread \u2014 label and archive"
     },
     {
       "from_match": "alerts@axis.bank.in",
@@ -387,24 +387,144 @@
       "label": "Bank/Axis",
       "archive_after_label": false,
       "confidence": 0.85,
-      "reasoning": "Recent Axis Bank alert — label but leave in inbox"
+      "reasoning": "Recent Axis Bank alert \u2014 label but leave in inbox"
     },
     {
-      "_note": "PolicyGenius — insurance marketing, delete",
+      "_note": "-- Barclays UK bank alerts \u2014 label and archive like other bank alerts --"
+    },
+    {
+      "from_match": "@barclays.co.uk",
+      "min_age_days": 7,
+      "action": "label",
+      "label": "Bank",
+      "archive_after_label": true,
+      "confidence": 0.9,
+      "reasoning": "Barclays UK bank notification >=7 days \u2014 label and archive"
+    },
+    {
+      "from_match": "@barclays.co.uk",
+      "max_age_days": 6,
+      "action": "label",
+      "label": "Bank",
+      "archive_after_label": false,
+      "confidence": 0.85,
+      "reasoning": "Recent Barclays alert \u2014 label but leave in inbox"
+    },
+    {
+      "_note": "-- Commonwealth Bank Australia (CommBank) \u2014 label Bank --"
+    },
+    {
+      "from_match": "@commbank.com.au",
+      "min_age_days": 7,
+      "action": "label",
+      "label": "Bank",
+      "archive_after_label": true,
+      "confidence": 0.9,
+      "reasoning": "CommBank Australia notification >=7 days \u2014 label and archive"
+    },
+    {
+      "from_match": "@commbank.com.au",
+      "max_age_days": 6,
+      "action": "label",
+      "label": "Bank",
+      "archive_after_label": false,
+      "confidence": 0.85,
+      "reasoning": "Recent CommBank alert \u2014 label, leave in inbox"
+    },
+    {
+      "_note": "-- TD Canada / Scotiabank Canada \u2014 label Bank --"
+    },
+    {
+      "from_match": "@td.com",
+      "min_age_days": 7,
+      "action": "label",
+      "label": "Bank",
+      "archive_after_label": true,
+      "confidence": 0.9,
+      "reasoning": "TD Canada bank notification >=7 days \u2014 label and archive"
+    },
+    {
+      "from_match": "@td.com",
+      "max_age_days": 6,
+      "action": "label",
+      "label": "Bank",
+      "archive_after_label": false,
+      "confidence": 0.85,
+      "reasoning": "Recent TD alert \u2014 label, leave in inbox"
+    },
+    {
+      "from_match": "@scotiabank.com",
+      "min_age_days": 7,
+      "action": "label",
+      "label": "Bank",
+      "archive_after_label": true,
+      "confidence": 0.9,
+      "reasoning": "Scotiabank notification >=7 days \u2014 label and archive"
+    },
+    {
+      "from_match": "@scotiabank.com",
+      "max_age_days": 6,
+      "action": "label",
+      "label": "Bank",
+      "archive_after_label": false,
+      "confidence": 0.85,
+      "reasoning": "Recent Scotiabank alert \u2014 label, leave in inbox"
+    },
+    {
+      "_note": "-- HSBC UK / HSBC India \u2014 label Bank --"
+    },
+    {
+      "from_match": "@hsbc.co.uk",
+      "min_age_days": 7,
+      "action": "label",
+      "label": "Bank",
+      "archive_after_label": true,
+      "confidence": 0.9,
+      "reasoning": "HSBC UK alert >=7 days \u2014 label and archive"
+    },
+    {
+      "from_match": "@hsbc.co.uk",
+      "max_age_days": 6,
+      "action": "label",
+      "label": "Bank",
+      "archive_after_label": false,
+      "confidence": 0.85,
+      "reasoning": "Recent HSBC alert \u2014 label, leave in inbox"
+    },
+    {
+      "from_match": "@hsbc.co.in",
+      "min_age_days": 7,
+      "action": "label",
+      "label": "Bank",
+      "archive_after_label": true,
+      "confidence": 0.9,
+      "reasoning": "HSBC India alert >=7 days \u2014 label and archive"
+    },
+    {
+      "from_match": "@hsbc.co.in",
+      "max_age_days": 6,
+      "action": "label",
+      "label": "Bank",
+      "archive_after_label": false,
+      "confidence": 0.85,
+      "reasoning": "Recent HSBC India alert \u2014 label, leave in inbox"
+    },
+    {
+      "_note": "PolicyGenius \u2014 insurance marketing, delete",
       "from_match": "@mail.policygenius.com",
       "action": "delete",
       "confidence": 0.92,
       "reasoning": "PolicyGenius insurance marketing"
     },
     {
-      "_note": "Google Store order confirmations/shipping — keep (transactional)",
+      "_note": "Google Store order confirmations/shipping \u2014 keep (transactional)",
       "from_match": "googlestore-noreply@google.com",
       "subject_match": "order",
       "action": "label",
       "label": "Receipts",
       "archive_after_label": true,
       "confidence": 0.9,
-      "reasoning": "Google Store order/shipping notification — label Receipts and archive"
+      "reasoning": "Google Store order/shipping notification \u2014 label Receipts and archive"
     },
     {
       "from_match": "googlestore-noreply@google.com",
@@ -413,7 +533,7 @@
       "label": "Receipts",
       "archive_after_label": true,
       "confidence": 0.9,
-      "reasoning": "Google Store shipment notification — label Receipts and archive"
+      "reasoning": "Google Store shipment notification \u2014 label Receipts and archive"
     },
     {
       "from_match": "googlestore-noreply@google.com",
@@ -422,65 +542,65 @@
       "label": "Receipts",
       "archive_after_label": true,
       "confidence": 0.9,
-      "reasoning": "Google Store delivery notification — label Receipts and archive"
+      "reasoning": "Google Store delivery notification \u2014 label Receipts and archive"
     },
     {
-      "_note": "Google Store product marketing — archive after 7 days unread",
+      "_note": "Google Store product marketing \u2014 archive after 7 days unread",
       "from_match": "googlestore-noreply@google.com",
       "min_age_days": 7,
       "action": "archive",
       "confidence": 0.9,
-      "reasoning": "Google Store product marketing ≥7 days unread — archive"
+      "reasoning": "Google Store product marketing \u22657 days unread \u2014 archive"
     },
     {
       "from_match": "googlestore-noreply@google.com",
       "max_age_days": 6,
       "action": "archive",
       "confidence": 0.88,
-      "reasoning": "Google Store marketing — archive (not worth keeping in inbox)"
+      "reasoning": "Google Store marketing \u2014 archive (not worth keeping in inbox)"
     },
     {
-      "_note": "Rachio sprinkler app newsletter — delete",
+      "_note": "Rachio sprinkler app newsletter \u2014 delete",
       "from_match": "@rachio.com",
       "action": "delete",
       "confidence": 0.9,
-      "reasoning": "Rachio app newsletter — marketing, not actionable"
+      "reasoning": "Rachio app newsletter \u2014 marketing, not actionable"
     },
     {
-      "_note": "InfoQ dev newsletter — keep recent, archive after 14d unread",
+      "_note": "InfoQ dev newsletter \u2014 keep recent, archive after 14d unread",
       "from_match": "@mail.infoq.com",
       "min_age_days": 14,
       "action": "archive",
       "confidence": 0.88,
-      "reasoning": "InfoQ dev newsletter >=14 days unread — archive"
+      "reasoning": "InfoQ dev newsletter >=14 days unread \u2014 archive"
     },
     {
       "from_match": "@mail.infoq.com",
       "max_age_days": 13,
       "action": "keep",
       "confidence": 0.85,
-      "reasoning": "Recent InfoQ dev newsletter — keep"
+      "reasoning": "Recent InfoQ dev newsletter \u2014 keep"
     },
     {
       "from_match": "@infoq.com",
       "min_age_days": 14,
       "action": "archive",
       "confidence": 0.88,
-      "reasoning": "InfoQ email >=14 days unread — archive"
+      "reasoning": "InfoQ email >=14 days unread \u2014 archive"
     },
     {
       "from_match": "@infoq.com",
       "max_age_days": 13,
       "action": "keep",
       "confidence": 0.85,
-      "reasoning": "Recent InfoQ email — keep"
+      "reasoning": "Recent InfoQ email \u2014 keep"
     },
     {
-      "_note": "PG&E utility alerts (gas work, outage notices) — keep",
+      "_note": "PG&E utility alerts (gas work, outage notices) \u2014 keep",
       "from_match": "pgecustomerservice@notification",
       "action": "keep",
       "confidence": 0.88,
-      "reasoning": "PG&E service/work alert — neighborhood utility notice, keep"
+      "reasoning": "PG&E service/work alert \u2014 neighborhood utility notice, keep"
     },
     {
       "_note": "=== SCHOOL / KIDS ==="
@@ -491,7 +611,7 @@
       "label": "School",
       "archive_after_label": false,
       "confidence": 0.88,
-      "reasoning": "ParentSquare school communication — label School, keep in inbox",
+      "reasoning": "ParentSquare school communication \u2014 label School, keep in inbox",
       "max_age_days": 13
     },
     {
@@ -500,7 +620,7 @@
       "label": "School",
       "archive_after_label": false,
       "confidence": 0.88,
-      "reasoning": "ClassDojo school communication — label School, keep in inbox",
+      "reasoning": "ClassDojo school communication \u2014 label School, keep in inbox",
       "max_age_days": 13
     },
     {
@@ -509,18 +629,18 @@
       "label": "School",
       "archive_after_label": false,
       "confidence": 0.9,
-      "reasoning": "Dublin USD school email — label School, keep in inbox",
+      "reasoning": "Dublin USD school email \u2014 label School, keep in inbox",
       "max_age_days": 13
     },
     {
-      "_note": "TeamSnap sports schedule — label School; keep recent, archive after a week",
+      "_note": "TeamSnap sports schedule \u2014 label School; keep recent, archive after a week",
       "from_match": "@email.teamsnap.com",
       "max_age_days": 6,
       "action": "label",
       "label": "School",
       "archive_after_label": false,
       "confidence": 0.88,
-      "reasoning": "TeamSnap sports schedule — label School, keep in inbox (recent)"
+      "reasoning": "TeamSnap sports schedule \u2014 label School, keep in inbox (recent)"
     },
     {
       "from_match": "@email.teamsnap.com",
@@ -529,17 +649,17 @@
       "label": "School",
       "archive_after_label": true,
       "confidence": 0.85,
-      "reasoning": "TeamSnap sports schedule ≥7 days unread — label School and archive"
+      "reasoning": "TeamSnap sports schedule \u22657 days unread \u2014 label School and archive"
     },
     {
-      "_note": "Peachjar school flyers — label School; keep recent, archive after a week",
+      "_note": "Peachjar school flyers \u2014 label School; keep recent, archive after a week",
       "from_match": "@peachjar.com",
       "min_age_days": 7,
       "action": "label",
       "label": "School",
       "archive_after_label": true,
       "confidence": 0.85,
-      "reasoning": "Peachjar school flyer ≥7 days unread — label School and archive"
+      "reasoning": "Peachjar school flyer \u22657 days unread \u2014 label School and archive"
     },
     {
       "from_match": "@peachjar.com",
@@ -548,7 +668,7 @@
       "label": "School",
       "archive_after_label": false,
       "confidence": 0.8,
-      "reasoning": "Peachjar school flyer — label School, keep in inbox (recent)"
+      "reasoning": "Peachjar school flyer \u2014 label School, keep in inbox (recent)"
     },
     {
       "_note": "=== FINANCE / ACCOUNTS ==="
@@ -560,7 +680,7 @@
       "label": "Investing",
       "archive_after_label": true,
       "confidence": 0.9,
-      "reasoning": "Fidelity account notice ≥7 days unread — label Finance and archive"
+      "reasoning": "Fidelity account notice \u22657 days unread \u2014 label Finance and archive"
     },
     {
       "from_match": "@mail.fidelity.com",
@@ -569,7 +689,7 @@
       "label": "Investing",
       "archive_after_label": false,
       "confidence": 0.85,
-      "reasoning": "Recent Fidelity notice — label Finance, keep in inbox"
+      "reasoning": "Recent Fidelity notice \u2014 label Finance, keep in inbox"
     },
     {
       "from_match": "@eonline.e-vanguard.com",
@@ -578,7 +698,7 @@
       "label": "Investing",
       "archive_after_label": true,
       "confidence": 0.9,
-      "reasoning": "Vanguard account notice ≥7 days unread — label Finance and archive"
+      "reasoning": "Vanguard account notice \u22657 days unread \u2014 label Finance and archive"
     },
     {
       "from_match": "@eonline.e-vanguard.com",
@@ -587,44 +707,44 @@
       "label": "Investing",
       "archive_after_label": false,
       "confidence": 0.85,
-      "reasoning": "Recent Vanguard notice — label Finance, keep in inbox"
+      "reasoning": "Recent Vanguard notice \u2014 label Finance, keep in inbox"
     },
     {
-      "_note": "Experian FICO alerts — keep if recent, archive after a week",
+      "_note": "Experian FICO alerts \u2014 keep if recent, archive after a week",
       "from_match": "@s.usa.experian.com",
       "min_age_days": 7,
       "action": "archive",
       "confidence": 0.85,
-      "reasoning": "Experian FICO alert ≥7 days unread — archive"
+      "reasoning": "Experian FICO alert \u22657 days unread \u2014 archive"
     },
     {
       "from_match": "@s.usa.experian.com",
       "max_age_days": 6,
       "action": "keep",
       "confidence": 0.85,
-      "reasoning": "Recent Experian FICO alert — keep"
+      "reasoning": "Recent Experian FICO alert \u2014 keep"
     },
     {
-      "_note": "Ownwell property tax promo — archive after 7 days",
+      "_note": "Ownwell property tax promo \u2014 archive after 7 days",
       "from_match": "@ownwell.com",
       "min_age_days": 7,
       "action": "archive",
       "confidence": 0.85,
-      "reasoning": "Ownwell property tax promo ≥7 days unread — archive"
+      "reasoning": "Ownwell property tax promo \u22657 days unread \u2014 archive"
     },
     {
       "from_match": "@ownwell.com",
       "max_age_days": 6,
       "action": "keep",
       "confidence": 0.8,
-      "reasoning": "Ownwell property tax notice — keep (recent)"
+      "reasoning": "Ownwell property tax notice \u2014 keep (recent)"
     },
     {
-      "_note": "AmFam insurance app marketing — archive",
+      "_note": "AmFam insurance app marketing \u2014 archive",
       "from_match": "@emails.amfam.com",
       "action": "archive",
       "confidence": 0.88,
-      "reasoning": "American Family Insurance marketing/app promo — archive"
+      "reasoning": "American Family Insurance marketing/app promo \u2014 archive"
     },
     {
       "_note": "=== TRAVEL / BOOKINGS ==="
@@ -633,13 +753,13 @@
       "from_match": "@peek.com",
       "action": "keep",
       "confidence": 0.92,
-      "reasoning": "Peek travel/activity booking confirmation — keep"
+      "reasoning": "Peek travel/activity booking confirmation \u2014 keep"
     },
     {
       "from_match": "@eg.hotels.com",
       "action": "keep",
       "confidence": 0.92,
-      "reasoning": "Hotels.com booking confirmation — keep"
+      "reasoning": "Hotels.com booking confirmation \u2014 keep"
     },
     {
       "_note": "=== LINKEDIN (real connections, not newsletters) ==="
@@ -648,99 +768,99 @@
       "from_match": "invitations@linkedin.com",
       "action": "keep",
       "confidence": 0.88,
-      "reasoning": "LinkedIn connection invitation — real person, keep",
+      "reasoning": "LinkedIn connection invitation \u2014 real person, keep",
       "max_age_days": 29
     },
     {
-      "_note": "=== NEWSLETTERS — archive after 7 days unread ==="
+      "_note": "=== NEWSLETTERS \u2014 archive after 7 days unread ==="
     },
     {
       "from_match": "@levels.fyi",
       "min_age_days": 7,
       "action": "archive",
       "confidence": 0.88,
-      "reasoning": "levels.fyi tech newsletter ≥7 days unread — archive"
+      "reasoning": "levels.fyi tech newsletter \u22657 days unread \u2014 archive"
     },
     {
       "from_match": "@levels.fyi",
       "max_age_days": 6,
       "action": "keep",
       "confidence": 0.8,
-      "reasoning": "Recent levels.fyi newsletter — keep"
+      "reasoning": "Recent levels.fyi newsletter \u2014 keep"
     },
     {
       "from_match": "@substack.com",
       "min_age_days": 7,
       "action": "archive",
       "confidence": 0.85,
-      "reasoning": "Substack newsletter ≥7 days unread — archive"
+      "reasoning": "Substack newsletter \u22657 days unread \u2014 archive"
     },
     {
       "from_match": "@substack.com",
       "max_age_days": 6,
       "action": "keep",
       "confidence": 0.8,
-      "reasoning": "Recent Substack newsletter — keep"
+      "reasoning": "Recent Substack newsletter \u2014 keep"
     },
     {
-      "_note": "signup.com volunteer reminders — archive after 7 days unread",
+      "_note": "signup.com volunteer reminders \u2014 archive after 7 days unread",
       "from_match": "@signup.com",
       "min_age_days": 7,
       "action": "archive",
       "confidence": 0.85,
-      "reasoning": "signup.com volunteer reminder ≥7 days unread — archive"
+      "reasoning": "signup.com volunteer reminder \u22657 days unread \u2014 archive"
     },
     {
       "from_match": "@signup.com",
       "max_age_days": 6,
       "action": "keep",
       "confidence": 0.82,
-      "reasoning": "Recent signup.com volunteer reminder — keep"
+      "reasoning": "Recent signup.com volunteer reminder \u2014 keep"
     },
     {
       "_note": "=== MISC SENDERS ==="
     },
     {
-      "_note": "Remitly transfer status — keep recent, label Finance and archive after 30d",
+      "_note": "Remitly transfer status \u2014 keep recent, label Finance and archive after 30d",
       "from_match": "@remitly.com",
       "min_age_days": 30,
       "action": "label",
       "label": "Finance",
       "archive_after_label": true,
       "confidence": 0.92,
-      "reasoning": "Remitly transfer status >=30 days unread — label Finance and archive"
+      "reasoning": "Remitly transfer status >=30 days unread \u2014 label Finance and archive"
     },
     {
       "from_match": "@remitly.com",
       "max_age_days": 29,
       "action": "keep",
       "confidence": 0.92,
-      "reasoning": "Remitly money transfer status — keep (recent)"
+      "reasoning": "Remitly money transfer status \u2014 keep (recent)"
     },
     {
-      "_note": "Lyft receipts — label Receipts (transactional, before promo rules)",
+      "_note": "Lyft receipts \u2014 label Receipts (transactional, before promo rules)",
       "from_match": "@lyftmail.com",
       "subject_match": "receipt",
       "action": "label",
       "label": "Receipts",
       "archive_after_label": true,
       "confidence": 0.92,
-      "reasoning": "Lyft ride receipt — label Receipts and archive"
+      "reasoning": "Lyft ride receipt \u2014 label Receipts and archive"
     },
     {
-      "_note": "Lyft promos — archive after 7 days (promo expired anyway)",
+      "_note": "Lyft promos \u2014 archive after 7 days (promo expired anyway)",
       "from_match": "@lyftmail.com",
       "min_age_days": 7,
       "action": "archive",
       "confidence": 0.88,
-      "reasoning": "Lyft promo ≥7 days unread — offer expired, archive"
+      "reasoning": "Lyft promo \u22657 days unread \u2014 offer expired, archive"
     },
     {
       "from_match": "@lyftmail.com",
       "max_age_days": 6,
       "action": "archive",
       "confidence": 0.88,
-      "reasoning": "Lyft promo — archive (marketing, not a receipt)"
+      "reasoning": "Lyft promo \u2014 archive (marketing, not a receipt)"
     },
     {
       "_note": "Coinbase newsletter keep if recent (label rule for >=7d is in BATCH 019 DERIVED RULES)",
@@ -748,22 +868,22 @@
       "max_age_days": 6,
       "action": "keep",
       "confidence": 0.8,
-      "reasoning": "Recent Coinbase newsletter — keep"
+      "reasoning": "Recent Coinbase newsletter \u2014 keep"
     },
     {
-      "_note": "LinkedIn activity notifications (reacted, commented) — keep",
+      "_note": "LinkedIn activity notifications (reacted, commented) \u2014 keep",
       "from_match": "updates-noreply@linkedin.com",
       "action": "keep",
       "confidence": 0.88,
-      "reasoning": "LinkedIn activity notification — keep",
+      "reasoning": "LinkedIn activity notification \u2014 keep",
       "max_age_days": 29
     },
     {
-      "_note": "Alameda County Fair / local event marketing — archive",
+      "_note": "Alameda County Fair / local event marketing \u2014 archive",
       "from_match": "@m.alamedacountyfair.com",
       "action": "archive",
       "confidence": 0.85,
-      "reasoning": "Local event marketing — archive"
+      "reasoning": "Local event marketing \u2014 archive"
     },
     {
       "_note": "=== RETAIL / SHOPPING MARKETING (delete) ==="
@@ -841,14 +961,14 @@
       "reasoning": "Bath & Body Works marketing"
     },
     {
-      "_note": "Goggles4U — split order receipts vs marketing newsletter",
+      "_note": "Goggles4U \u2014 split order receipts vs marketing newsletter",
       "from_match": "@goggles4u.com",
       "subject_match": "order",
       "action": "label",
       "label": "Receipts",
       "archive_after_label": true,
       "confidence": 0.9,
-      "reasoning": "Goggles4U order — label Receipts and archive"
+      "reasoning": "Goggles4U order \u2014 label Receipts and archive"
     },
     {
       "from_match": "@goggles4u.com",
@@ -857,34 +977,34 @@
       "label": "Receipts",
       "archive_after_label": true,
       "confidence": 0.9,
-      "reasoning": "Goggles4U delivery — label Receipts and archive"
+      "reasoning": "Goggles4U delivery \u2014 label Receipts and archive"
     },
     {
       "from_match": "@goggles4u.com",
       "subject_match": "review",
       "action": "archive",
       "confidence": 0.88,
-      "reasoning": "Goggles4U review request — archive"
+      "reasoning": "Goggles4U review request \u2014 archive"
     },
     {
       "from_match": "@goggles4u.com",
       "min_age_days": 7,
       "action": "archive",
       "confidence": 0.88,
-      "reasoning": "Goggles4U marketing >=7 days unread — archive"
+      "reasoning": "Goggles4U marketing >=7 days unread \u2014 archive"
     },
     {
       "from_match": "@goggles4u.com",
       "max_age_days": 6,
       "action": "keep",
       "confidence": 0.75,
-      "reasoning": "Recent Goggles4U email — keep"
+      "reasoning": "Recent Goggles4U email \u2014 keep"
     },
     {
       "from_match": "@enews.goggles4u.com",
       "action": "delete",
       "confidence": 0.92,
-      "reasoning": "Goggles4U marketing newsletter (enews subdomain) — delete"
+      "reasoning": "Goggles4U marketing newsletter (enews subdomain) \u2014 delete"
     },
     {
       "from_match": "@wish.com",
@@ -995,31 +1115,31 @@
       "from_match": "@email.digg.com",
       "action": "archive",
       "confidence": 0.95,
-      "reasoning": "Digg (defunct) — archive"
+      "reasoning": "Digg (defunct) \u2014 archive"
     },
     {
       "from_match": "@getpocket.com",
       "action": "archive",
       "confidence": 0.95,
-      "reasoning": "Pocket (shut down) — archive"
+      "reasoning": "Pocket (shut down) \u2014 archive"
     },
     {
       "from_match": "@today.getpocket.com",
       "action": "archive",
       "confidence": 0.95,
-      "reasoning": "Pocket (shut down) — archive"
+      "reasoning": "Pocket (shut down) \u2014 archive"
     },
     {
       "from_match": "@mint.com",
       "action": "archive",
       "confidence": 0.95,
-      "reasoning": "Mint (shut down Dec 2023) — archive"
+      "reasoning": "Mint (shut down Dec 2023) \u2014 archive"
     },
     {
       "from_match": "@em1.mint.intuit.com",
       "action": "archive",
       "confidence": 0.95,
-      "reasoning": "Mint/Intuit (shut down) — archive"
+      "reasoning": "Mint/Intuit (shut down) \u2014 archive"
     },
     {
       "_note": "=== COMMUNITY / SOCIAL (archive) ==="
@@ -1028,75 +1148,75 @@
       "from_match": "@meetup.com",
       "action": "archive",
       "confidence": 0.9,
-      "reasoning": "Meetup — user no longer active, archive"
+      "reasoning": "Meetup \u2014 user no longer active, archive"
     },
     {
       "from_match": "@quora.com",
       "action": "delete",
       "confidence": 0.9,
-      "reasoning": "Quora digest — delete if unread"
+      "reasoning": "Quora digest \u2014 delete if unread"
     },
     {
       "from_match": "@glassdoor.com",
       "action": "archive",
       "confidence": 0.88,
-      "reasoning": "Glassdoor job alerts — archive"
+      "reasoning": "Glassdoor job alerts \u2014 archive"
     },
     {
       "from_match": "@flowingdata.com",
       "action": "archive",
       "confidence": 0.88,
-      "reasoning": "FlowingData newsletter — no longer reading, archive"
+      "reasoning": "FlowingData newsletter \u2014 no longer reading, archive"
     },
     {
       "from_match": "@givebloodtoday.redcrossblood.org",
       "action": "delete",
       "confidence": 0.92,
-      "reasoning": "Red Cross blood drive marketing — delete"
+      "reasoning": "Red Cross blood drive marketing \u2014 delete"
     },
     {
       "from_match": "@rs.email.nextdoor.com",
       "min_age_days": 7,
       "action": "archive",
       "confidence": 0.88,
-      "reasoning": "Nextdoor notification ≥7 days unread — archive"
+      "reasoning": "Nextdoor notification \u22657 days unread \u2014 archive"
     },
     {
       "from_match": "@rs.email.nextdoor.com",
       "max_age_days": 6,
       "action": "keep",
       "confidence": 0.82,
-      "reasoning": "Recent Nextdoor notification — keep"
+      "reasoning": "Recent Nextdoor notification \u2014 keep"
     },
     {
       "from_match": "@stackoverflow.email",
       "action": "keep",
       "confidence": 0.85,
-      "reasoning": "Stack Overflow newsletter — keep"
+      "reasoning": "Stack Overflow newsletter \u2014 keep"
     },
     {
       "from_match": "@hired.com",
       "action": "archive",
       "confidence": 0.88,
-      "reasoning": "Hired.com job alerts — archive"
+      "reasoning": "Hired.com job alerts \u2014 archive"
     },
     {
       "_note": "=== SUBDOMAIN FIXES ==="
     },
     {
-      "_note": "Experian — also arrives from e.usa.experian.com (different subdomain from s.usa.experian.com)",
+      "_note": "Experian \u2014 also arrives from e.usa.experian.com (different subdomain from s.usa.experian.com)",
       "from_match": "@e.usa.experian.com",
       "min_age_days": 7,
       "action": "archive",
       "confidence": 0.88,
-      "reasoning": "Experian FICO alert ≥7 days unread — archive"
+      "reasoning": "Experian FICO alert \u22657 days unread \u2014 archive"
     },
     {
       "from_match": "@e.usa.experian.com",
       "max_age_days": 6,
       "action": "keep",
       "confidence": 0.85,
-      "reasoning": "Recent Experian FICO alert — keep"
+      "reasoning": "Recent Experian FICO alert \u2014 keep"
     },
     {
       "_note": "=== USPS / MAIL NOTIFICATIONS (label+archive rules in BATCH 019 DERIVED RULES) ==="
@@ -1105,32 +1225,32 @@
       "_note": "=== PROPERTY / HOME ==="
     },
     {
-      "_note": "Arrived monthly statement — label Finance (before generic archive rule)",
+      "_note": "Arrived monthly statement \u2014 label Finance (before generic archive rule)",
       "from_match": "@mail.arrived.com",
       "subject_match": "statement",
       "action": "label",
       "label": "Investing",
       "archive_after_label": true,
       "confidence": 0.9,
-      "reasoning": "Arrived monthly account statement — label Finance and archive"
+      "reasoning": "Arrived monthly account statement \u2014 label Finance and archive"
     },
     {
-      "_note": "Arrived — property management app",
+      "_note": "Arrived \u2014 property management app",
       "from_match": "@mail.arrived.com",
       "min_age_days": 7,
       "action": "archive",
       "confidence": 0.85,
-      "reasoning": "Arrived property app notification ≥7 days unread — archive"
+      "reasoning": "Arrived property app notification \u22657 days unread \u2014 archive"
     },
     {
       "from_match": "@mail.arrived.com",
       "max_age_days": 6,
       "action": "keep",
       "confidence": 0.82,
-      "reasoning": "Recent Arrived property notification — keep"
+      "reasoning": "Recent Arrived property notification \u2014 keep"
     },
     {
-      "_note": "=== COSTCO (surgical split — marketing delete, transactional keep) ==="
+      "_note": "=== COSTCO (surgical split \u2014 marketing delete, transactional keep) ==="
     },
     {
       "from_match": "costco@online.costco.com",
@@ -1169,20 +1289,20 @@
       "reasoning": "Costco auto survey"
     },
     {
-      "_note": "Costco transactional — keep recent, label Shopping and archive after 30d",
+      "_note": "Costco transactional \u2014 keep recent, label Shopping and archive after 30d",
       "from_match": "orderstatus@costco.com",
       "min_age_days": 30,
       "action": "label",
       "label": "Shopping",
       "archive_after_label": true,
       "confidence": 0.92,
-      "reasoning": "Costco order status >=30 days unread — label Shopping and archive"
+      "reasoning": "Costco order status >=30 days unread \u2014 label Shopping and archive"
     },
     {
       "from_match": "orderstatus@costco.com",
       "action": "keep",
       "confidence": 0.92,
-      "reasoning": "Costco order status — keep (recent)"
+      "reasoning": "Costco order status \u2014 keep (recent)"
     },
     {
       "from_match": "order-refund@costco.com",
@@ -1191,13 +1311,13 @@
       "label": "Shopping",
       "archive_after_label": true,
       "confidence": 0.95,
-      "reasoning": "Costco refund >=30 days unread — label Shopping and archive"
+      "reasoning": "Costco refund >=30 days unread \u2014 label Shopping and archive"
     },
     {
       "from_match": "order-refund@costco.com",
       "action": "keep",
       "confidence": 0.95,
-      "reasoning": "Costco refund — keep (recent)"
+      "reasoning": "Costco refund \u2014 keep (recent)"
     },
     {
       "from_match": "order-cancel@costco.com",
@@ -1206,13 +1326,13 @@
       "label": "Shopping",
       "archive_after_label": true,
       "confidence": 0.95,
-      "reasoning": "Costco order cancel >=30 days unread — label Shopping and archive"
+      "reasoning": "Costco order cancel >=30 days unread \u2014 label Shopping and archive"
     },
     {
       "from_match": "order-cancel@costco.com",
       "action": "keep",
       "confidence": 0.95,
-      "reasoning": "Costco order cancel — keep (recent)"
+      "reasoning": "Costco order cancel \u2014 keep (recent)"
     },
     {
       "from_match": "deliverystatus@logistics.costco.com",
@@ -1221,13 +1341,13 @@
       "label": "Shopping",
       "archive_after_label": true,
       "confidence": 0.95,
-      "reasoning": "Costco delivery status >=30 days unread — label Shopping and archive"
+      "reasoning": "Costco delivery status >=30 days unread \u2014 label Shopping and archive"
     },
     {
       "from_match": "deliverystatus@logistics.costco.com",
       "action": "keep",
       "confidence": 0.95,
-      "reasoning": "Costco delivery status — keep (recent)"
+      "reasoning": "Costco delivery status \u2014 keep (recent)"
     },
     {
       "from_match": "customercare@costcotravel.com",
@@ -1236,13 +1356,13 @@
       "label": "Shopping",
       "archive_after_label": true,
       "confidence": 0.92,
-      "reasoning": "Costco travel >=30 days unread — label Shopping and archive"
+      "reasoning": "Costco travel >=30 days unread \u2014 label Shopping and archive"
     },
     {
       "from_match": "customercare@costcotravel.com",
       "action": "keep",
       "confidence": 0.92,
-      "reasoning": "Costco travel customer care — keep (recent)"
+      "reasoning": "Costco travel customer care \u2014 keep (recent)"
     },
     {
       "from_match": "costco@orders.costco.com",
@@ -1251,13 +1371,13 @@
       "label": "Shopping",
       "archive_after_label": true,
       "confidence": 0.92,
-      "reasoning": "Costco order confirmation >=30 days unread — label Shopping and archive"
+      "reasoning": "Costco order confirmation >=30 days unread \u2014 label Shopping and archive"
     },
     {
       "from_match": "costco@orders.costco.com",
       "action": "keep",
       "confidence": 0.92,
-      "reasoning": "Costco order confirmation — keep (recent)"
+      "reasoning": "Costco order confirmation \u2014 keep (recent)"
     },
     {
       "from_match": "costco@trx.costco.com",
@@ -1266,13 +1386,13 @@
       "label": "Shopping",
       "archive_after_label": true,
       "confidence": 0.92,
-      "reasoning": "Costco transaction >=30 days unread — label Shopping and archive"
+      "reasoning": "Costco transaction >=30 days unread \u2014 label Shopping and archive"
     },
     {
       "from_match": "costco@trx.costco.com",
       "action": "keep",
       "confidence": 0.92,
-      "reasoning": "Costco transaction — keep (recent)"
+      "reasoning": "Costco transaction \u2014 keep (recent)"
     },
     {
       "from_match": "costco@digitalshopcard.costco.com",
@@ -1281,13 +1401,13 @@
       "label": "Shopping",
       "archive_after_label": true,
       "confidence": 0.9,
-      "reasoning": "Costco digital shop card >=30 days unread — label Shopping and archive"
+      "reasoning": "Costco digital shop card >=30 days unread \u2014 label Shopping and archive"
     },
     {
       "from_match": "costco@digitalshopcard.costco.com",
       "action": "keep",
       "confidence": 0.9,
-      "reasoning": "Costco digital shop card — keep (recent)"
+      "reasoning": "Costco digital shop card \u2014 keep (recent)"
     },
     {
       "_note": "=== BANKING ==="
@@ -1299,7 +1419,7 @@
       "label": "Bank/BofA",
       "archive_after_label": true,
       "confidence": 0.9,
-      "reasoning": "Bank of America notice ≥7 days unread — label Finance and archive"
+      "reasoning": "Bank of America notice \u22657 days unread \u2014 label Finance and archive"
     },
     {
       "from_match": "@emcom.bankofamerica.com",
@@ -1308,7 +1428,7 @@
       "label": "Bank/BofA",
       "archive_after_label": false,
       "confidence": 0.85,
-      "reasoning": "Recent Bank of America notice — label Finance, keep in inbox"
+      "reasoning": "Recent Bank of America notice \u2014 label Finance, keep in inbox"
     },
     {
       "_note": "=== DIGESTS / NEWSLETTERS (archive after 7 days) ==="
@@ -1318,14 +1438,14 @@
       "min_age_days": 7,
       "action": "archive",
       "confidence": 0.88,
-      "reasoning": "The Lab digest ≥7 days unread — never read, archive"
+      "reasoning": "The Lab digest \u22657 days unread \u2014 never read, archive"
     },
     {
       "from_match": "@connectedcommunity.org",
       "max_age_days": 6,
       "action": "keep",
       "confidence": 0.8,
-      "reasoning": "Recent The Lab digest — keep"
+      "reasoning": "Recent The Lab digest \u2014 keep"
     },
     {
       "_note": "=== BODY-SCAN DERIVED RULES ==="
@@ -1337,7 +1457,7 @@
       "from_match": "@chess.com",
       "action": "delete",
       "confidence": 0.92,
-      "reasoning": "Chess.com marketing — delete"
+      "reasoning": "Chess.com marketing \u2014 delete"
     },
     {
       "_note": "-- Lyft marketing subdomain (separate from receipts subdomain) --"
@@ -1346,7 +1466,7 @@
       "from_match": "@marketing.lyftmail.com",
       "action": "delete",
       "confidence": 0.92,
-      "reasoning": "Lyft marketing subdomain — delete"
+      "reasoning": "Lyft marketing subdomain \u2014 delete"
     },
     {
       "_note": "-- Ring: split transactional vs marketing --"
@@ -1356,7 +1476,7 @@
       "subject_match": "motion",
       "action": "keep",
       "confidence": 0.9,
-      "reasoning": "Ring motion alert — keep"
+      "reasoning": "Ring motion alert \u2014 keep"
     },
     {
       "from_match": "@mail.ring.com",
@@ -1365,7 +1485,7 @@
       "label": "Bills/Subscriptions",
       "archive_after_label": true,
       "confidence": 0.9,
-      "reasoning": "Ring subscription — label Finance"
+      "reasoning": "Ring subscription \u2014 label Finance"
     },
     {
       "from_match": "@mail.ring.com",
@@ -1374,7 +1494,7 @@
       "label": "Receipts",
       "archive_after_label": true,
       "confidence": 0.92,
-      "reasoning": "Ring invoice — label Receipts"
+      "reasoning": "Ring invoice \u2014 label Receipts"
     },
     {
       "from_match": "@mail.ring.com",
@@ -1383,7 +1503,7 @@
       "label": "Bills/Subscriptions",
       "archive_after_label": true,
       "confidence": 0.9,
-      "reasoning": "Ring payment — label Finance"
+      "reasoning": "Ring payment \u2014 label Finance"
     },
     {
       "from_match": "@mail.ring.com",
@@ -1392,25 +1512,25 @@
       "label": "Bills/Subscriptions",
       "archive_after_label": true,
       "confidence": 0.88,
-      "reasoning": "Ring plan notice — label Finance"
+      "reasoning": "Ring plan notice \u2014 label Finance"
     },
     {
       "from_match": "@mail.ring.com",
       "action": "delete",
       "confidence": 0.88,
-      "reasoning": "Ring marketing (no transactional subject match) — delete"
+      "reasoning": "Ring marketing (no transactional subject match) \u2014 delete"
     },
     {
       "_note": "-- Citi: info15.citi.com is marketing; keep transactional on other subdomains --"
     },
     {
-      "_note": "Citi info15: FICO score updates — archive after 14d (informational, not pure marketing)",
+      "_note": "Citi info15: FICO score updates \u2014 archive after 14d (informational, not pure marketing)",
       "from_match": "@info15.citi.com",
       "subject_match": "fico",
       "min_age_days": 14,
       "action": "archive",
       "confidence": 0.88,
-      "reasoning": "Citi FICO score update ≥14 days unread — archive"
+      "reasoning": "Citi FICO score update \u226514 days unread \u2014 archive"
     },
     {
       "from_match": "@info15.citi.com",
@@ -1418,16 +1538,16 @@
       "max_age_days": 13,
       "action": "keep",
       "confidence": 0.82,
-      "reasoning": "Recent Citi FICO score update — keep"
+      "reasoning": "Recent Citi FICO score update \u2014 keep"
     },
     {
-      "_note": "Citi info15: account activity check — archive after 7d",
+      "_note": "Citi info15: account activity check \u2014 archive after 7d",
       "from_match": "@info15.citi.com",
       "subject_match": "account activity",
       "min_age_days": 7,
       "action": "archive",
       "confidence": 0.85,
-      "reasoning": "Citi account activity prompt ≥7 days unread — archive"
+      "reasoning": "Citi account activity prompt \u22657 days unread \u2014 archive"
     },
     {
       "from_match": "@info15.citi.com",
@@ -1435,16 +1555,16 @@
       "max_age_days": 6,
       "action": "keep",
       "confidence": 0.82,
-      "reasoning": "Recent Citi account activity prompt — keep"
+      "reasoning": "Recent Citi account activity prompt \u2014 keep"
     },
     {
-      "_note": "Citi info15: reward certificate / account notices — keep, archive after 14d",
+      "_note": "Citi info15: reward certificate / account notices \u2014 keep, archive after 14d",
       "from_match": "@info15.citi.com",
       "subject_match": "reward",
       "min_age_days": 14,
       "action": "archive",
       "confidence": 0.88,
-      "reasoning": "Citi reward certificate >=14 days unread — archive"
+      "reasoning": "Citi reward certificate >=14 days unread \u2014 archive"
     },
     {
       "from_match": "@info15.citi.com",
@@ -1452,17 +1572,17 @@
       "max_age_days": 13,
       "action": "keep",
       "confidence": 0.85,
-      "reasoning": "Recent Citi reward notice — keep"
+      "reasoning": "Recent Citi reward notice \u2014 keep"
     },
     {
       "from_match": "@info15.citi.com",
       "subject_match": "update your phone",
       "action": "keep",
       "confidence": 0.92,
-      "reasoning": "Citi account security update request — keep"
+      "reasoning": "Citi account security update request \u2014 keep"
     },
     {
-      "_note": "Citi info15: account-info requests are real (not marketing) — archive after 14d, never delete",
+      "_note": "Citi info15: account-info requests are real (not marketing) \u2014 archive after 14d, never delete",
       "from_match": "@info15.citi.com",
       "subject_match": "action recommended",
       "min_age_days": 14,
@@ -1470,7 +1590,7 @@
       "label": "Bank/Citi",
       "archive_after_label": true,
       "confidence": 0.88,
-      "reasoning": "Citi account-info request ≥14 days unread — label Bank/Citi and archive"
+      "reasoning": "Citi account-info request \u226514 days unread \u2014 label Bank/Citi and archive"
     },
     {
       "from_match": "@info15.citi.com",
@@ -1479,7 +1599,7 @@
       "label": "Bank/Citi",
       "archive_after_label": false,
       "confidence": 0.85,
-      "reasoning": "Citi account-info request — label Bank/Citi, keep in inbox"
+      "reasoning": "Citi account-info request \u2014 label Bank/Citi, keep in inbox"
     },
     {
       "from_match": "@info15.citi.com",
@@ -1488,13 +1608,13 @@
       "label": "Bank/Citi",
       "archive_after_label": false,
       "confidence": 0.85,
-      "reasoning": "Citi account-info request — label Bank/Citi, keep in inbox"
+      "reasoning": "Citi account-info request \u2014 label Bank/Citi, keep in inbox"
     },
     {
       "from_match": "@info15.citi.com",
       "action": "delete",
       "confidence": 0.92,
-      "reasoning": "Citi marketing subdomain (info15) — delete"
+      "reasoning": "Citi marketing subdomain (info15) \u2014 delete"
     },
     {
       "from_match": "@citi.com",
@@ -1503,7 +1623,7 @@
       "label": "Bank/Citi",
       "archive_after_label": true,
       "confidence": 0.92,
-      "reasoning": "Citi statement — label Finance"
+      "reasoning": "Citi statement \u2014 label Finance"
     },
     {
       "from_match": "@citi.com",
@@ -1512,49 +1632,49 @@
       "label": "Bank/Citi",
       "archive_after_label": true,
       "confidence": 0.9,
-      "reasoning": "Citi payment notice — label Finance"
+      "reasoning": "Citi payment notice \u2014 label Finance"
     },
     {
       "from_match": "@citi.com",
       "subject_match": "alert",
       "action": "keep",
       "confidence": 0.88,
-      "reasoning": "Citi account alert — keep"
+      "reasoning": "Citi account alert \u2014 keep"
     },
     {
       "from_match": "@citi.com",
       "subject_match": "transaction",
       "action": "keep",
       "confidence": 0.88,
-      "reasoning": "Citi transaction notice — keep"
+      "reasoning": "Citi transaction notice \u2014 keep"
     },
     {
       "from_match": "@citi.com",
       "subject_match": "fraud",
       "action": "keep",
       "confidence": 0.98,
-      "reasoning": "Citi fraud alert — keep"
+      "reasoning": "Citi fraud alert \u2014 keep"
     },
     {
       "from_match": "@citi.com",
       "subject_match": "unauthorized",
       "action": "keep",
       "confidence": 0.98,
-      "reasoning": "Citi unauthorized activity — keep"
+      "reasoning": "Citi unauthorized activity \u2014 keep"
     },
     {
       "from_match": "@citi.com",
       "min_age_days": 7,
       "action": "archive",
       "confidence": 0.82,
-      "reasoning": "Citi marketing/misc ≥7 days unread — archive"
+      "reasoning": "Citi marketing/misc \u22657 days unread \u2014 archive"
     },
     {
       "from_match": "@citi.com",
       "max_age_days": 6,
       "action": "keep",
       "confidence": 0.75,
-      "reasoning": "Recent Citi email — keep"
+      "reasoning": "Recent Citi email \u2014 keep"
     },
     {
       "_note": "-- KOA: split booking confirmations vs marketing --"
@@ -1566,7 +1686,7 @@
       "label": "Receipts",
       "archive_after_label": true,
       "confidence": 0.92,
-      "reasoning": "KOA reservation confirmation — label Receipts"
+      "reasoning": "KOA reservation confirmation \u2014 label Receipts"
     },
     {
       "from_match": "@camp.koa.com",
@@ -1575,7 +1695,7 @@
       "label": "Receipts",
       "archive_after_label": true,
       "confidence": 0.92,
-      "reasoning": "KOA booking confirmation — label Receipts"
+      "reasoning": "KOA booking confirmation \u2014 label Receipts"
     },
     {
       "from_match": "@camp.koa.com",
@@ -1584,7 +1704,7 @@
       "label": "Receipts",
       "archive_after_label": true,
       "confidence": 0.92,
-      "reasoning": "KOA booking — label Receipts"
+      "reasoning": "KOA booking \u2014 label Receipts"
     },
     {
       "from_match": "@camp.koa.com",
@@ -1593,13 +1713,13 @@
       "label": "Receipts",
       "archive_after_label": true,
       "confidence": 0.92,
-      "reasoning": "KOA receipt — label Receipts"
+      "reasoning": "KOA receipt \u2014 label Receipts"
     },
     {
       "from_match": "@camp.koa.com",
       "action": "delete",
       "confidence": 0.88,
-      "reasoning": "KOA marketing (no booking subject match) — delete"
+      "reasoning": "KOA marketing (no booking subject match) \u2014 delete"
     },
     {
       "_note": "-- SiriusXM marketing --"
@@ -1608,27 +1728,27 @@
       "from_match": "@mc.siriusxm.com",
       "action": "delete",
       "confidence": 0.92,
-      "reasoning": "SiriusXM marketing — delete"
+      "reasoning": "SiriusXM marketing \u2014 delete"
     },
     {
-      "_note": "-- Voyager crypto bankruptcy — archive after 14 days --"
+      "_note": "-- Voyager crypto bankruptcy \u2014 archive after 14 days --"
     },
     {
       "from_match": "@investvoyager.com",
       "min_age_days": 14,
       "action": "archive",
       "confidence": 0.88,
-      "reasoning": "Voyager bankruptcy notice ≥14 days unread — archive"
+      "reasoning": "Voyager bankruptcy notice \u226514 days unread \u2014 archive"
     },
     {
       "from_match": "@investvoyager.com",
       "max_age_days": 13,
       "action": "keep",
       "confidence": 0.85,
-      "reasoning": "Recent Voyager bankruptcy notice — keep"
+      "reasoning": "Recent Voyager bankruptcy notice \u2014 keep"
     },
     {
-      "_note": "-- Monarch personal finance app — label Finance --"
+      "_note": "-- Monarch personal finance app \u2014 label Finance --"
     },
     {
       "from_match": "@email.monarch.com",
@@ -1637,14 +1757,14 @@
       "label": "Investing",
       "archive_after_label": true,
       "confidence": 0.9,
-      "reasoning": "Monarch finance app ≥7 days unread — label Finance"
+      "reasoning": "Monarch finance app \u22657 days unread \u2014 label Finance"
     },
     {
       "from_match": "@email.monarch.com",
       "max_age_days": 6,
       "action": "keep",
       "confidence": 0.85,
-      "reasoning": "Recent Monarch finance notification — keep"
+      "reasoning": "Recent Monarch finance notification \u2014 keep"
     },
     {
       "_note": "-- Delta Dental statements --"
@@ -1655,7 +1775,7 @@
       "label": "Bills/Insurance",
       "archive_after_label": true,
       "confidence": 0.9,
-      "reasoning": "Delta Dental statement — label Finance"
+      "reasoning": "Delta Dental statement \u2014 label Finance"
     },
     {
       "_note": "-- PenFed credit union --"
@@ -1667,28 +1787,28 @@
       "label": "Bank/PenFed",
       "archive_after_label": true,
       "confidence": 0.9,
-      "reasoning": "PenFed statement — label Finance"
+      "reasoning": "PenFed statement \u2014 label Finance"
     },
     {
       "from_match": "@message.penfed.org",
       "subject_match": "alert",
       "action": "keep",
       "confidence": 0.88,
-      "reasoning": "PenFed alert — keep"
+      "reasoning": "PenFed alert \u2014 keep"
     },
     {
       "from_match": "@message.penfed.org",
       "min_age_days": 7,
       "action": "archive",
       "confidence": 0.82,
-      "reasoning": "PenFed misc ≥7 days unread — archive"
+      "reasoning": "PenFed misc \u22657 days unread \u2014 archive"
     },
     {
       "from_match": "@message.penfed.org",
       "max_age_days": 6,
       "action": "keep",
       "confidence": 0.78,
-      "reasoning": "Recent PenFed email — keep"
+      "reasoning": "Recent PenFed email \u2014 keep"
     },
     {
       "_note": "-- DSRSD water/utility bills --"
@@ -1700,7 +1820,7 @@
       "label": "Bills/Utilities",
       "archive_after_label": true,
       "confidence": 0.9,
-      "reasoning": "DSRSD utility ≥14 days unread — label Bills/Utilities and archive"
+      "reasoning": "DSRSD utility \u226514 days unread \u2014 label Bills/Utilities and archive"
     },
     {
       "from_match": "@dsrsd.com",
@@ -1709,10 +1829,10 @@
       "label": "Bills/Utilities",
       "archive_after_label": false,
       "confidence": 0.85,
-      "reasoning": "Recent DSRSD utility notice — label Bills/Utilities, keep in inbox"
+      "reasoning": "Recent DSRSD utility notice \u2014 label Bills/Utilities, keep in inbox"
     },
     {
-      "_note": "-- camsonline.com (India MF) — superseded by BATCH 019 DERIVED RULES with conf=0.88 --"
+      "_note": "-- camsonline.com (India MF) \u2014 superseded by BATCH 019 DERIVED RULES with conf=0.88 --"
     },
     {
       "_note": "-- Salesforce mail: split internal notifications vs marketing --"
@@ -1722,49 +1842,49 @@
       "subject_match": "case",
       "action": "keep",
       "confidence": 0.88,
-      "reasoning": "Salesforce case notification — keep"
+      "reasoning": "Salesforce case notification \u2014 keep"
     },
     {
       "from_match": "@mail.salesforce.com",
       "subject_match": "chatter",
       "action": "keep",
       "confidence": 0.85,
-      "reasoning": "Salesforce Chatter notification — keep"
+      "reasoning": "Salesforce Chatter notification \u2014 keep"
     },
     {
       "from_match": "@mail.salesforce.com",
       "subject_match": "alert",
       "action": "keep",
       "confidence": 0.85,
-      "reasoning": "Salesforce alert — keep"
+      "reasoning": "Salesforce alert \u2014 keep"
     },
     {
       "from_match": "@mail.salesforce.com",
       "subject_match": "pricing",
       "action": "archive",
       "confidence": 0.88,
-      "reasoning": "Salesforce pricing/marketing — archive"
+      "reasoning": "Salesforce pricing/marketing \u2014 archive"
     },
     {
       "from_match": "@mail.salesforce.com",
       "subject_match": "last chance",
       "action": "archive",
       "confidence": 0.9,
-      "reasoning": "Salesforce marketing — archive"
+      "reasoning": "Salesforce marketing \u2014 archive"
     },
     {
       "from_match": "@mail.salesforce.com",
       "min_age_days": 7,
       "action": "archive",
       "confidence": 0.8,
-      "reasoning": "Salesforce misc ≥7 days unread — archive"
+      "reasoning": "Salesforce misc \u22657 days unread \u2014 archive"
     },
     {
       "from_match": "@mail.salesforce.com",
       "max_age_days": 6,
       "action": "keep",
       "confidence": 0.75,
-      "reasoning": "Recent Salesforce email — keep"
+      "reasoning": "Recent Salesforce email \u2014 keep"
     },
     {
       "_note": "-- Axis Bank India security subdomain --"
@@ -1773,7 +1893,7 @@
       "from_match": "@digital.axisbankmail.bank.in",
       "action": "keep",
       "confidence": 0.88,
-      "reasoning": "Axis Bank security/digital alert — keep"
+      "reasoning": "Axis Bank security/digital alert \u2014 keep"
     },
     {
       "_note": "-- GoMining crypto promo with pressure tactics --"
@@ -1782,47 +1902,47 @@
       "from_match": "@gomining.com",
       "action": "delete",
       "confidence": 0.92,
-      "reasoning": "GoMining crypto marketing with pressure tactics — delete"
+      "reasoning": "GoMining crypto marketing with pressure tactics \u2014 delete"
     },
     {
-      "_note": "-- Dropbox security/account notifications — keep --"
+      "_note": "-- Dropbox security/account notifications \u2014 keep --"
     },
     {
       "from_match": "@dropbox.com",
       "subject_match": "sign in",
       "action": "keep",
       "confidence": 0.92,
-      "reasoning": "Dropbox sign-in security alert — keep"
+      "reasoning": "Dropbox sign-in security alert \u2014 keep"
     },
     {
       "from_match": "@dropbox.com",
       "subject_match": "security",
       "action": "keep",
       "confidence": 0.92,
-      "reasoning": "Dropbox security alert — keep"
+      "reasoning": "Dropbox security alert \u2014 keep"
     },
     {
       "from_match": "@dropbox.com",
       "min_age_days": 14,
       "action": "archive",
       "confidence": 0.8,
-      "reasoning": "Dropbox misc ≥14 days unread — archive"
+      "reasoning": "Dropbox misc \u226514 days unread \u2014 archive"
     },
     {
       "from_match": "@dropbox.com",
       "max_age_days": 13,
       "action": "keep",
       "confidence": 0.75,
-      "reasoning": "Recent Dropbox notification — keep"
+      "reasoning": "Recent Dropbox notification \u2014 keep"
     },
     {
-      "_note": "-- Oura ring health data — keep --"
+      "_note": "-- Oura ring health data \u2014 keep --"
     },
     {
       "from_match": "@m.ouraring.com",
       "action": "keep",
       "confidence": 0.85,
-      "reasoning": "Oura ring health/recovery data — keep",
+      "reasoning": "Oura ring health/recovery data \u2014 keep",
       "max_age_days": 13
     },
     {
@@ -1832,39 +1952,39 @@
       "from_match": "@usps.com",
       "action": "keep",
       "confidence": 0.88,
-      "reasoning": "USPS delivery tracking — keep",
+      "reasoning": "USPS delivery tracking \u2014 keep",
       "max_age_days": 13
     },
     {
-      "_note": "-- evite BAPS invitations — keep recent, archive after 28d (past event) --"
+      "_note": "-- evite BAPS invitations \u2014 keep recent, archive after 28d (past event) --"
     },
     {
       "from_match": "@mailva.evite.com",
       "min_age_days": 28,
       "action": "archive",
       "confidence": 0.88,
-      "reasoning": "Evite event invitation >=28 days unread — past event, archive"
+      "reasoning": "Evite event invitation >=28 days unread \u2014 past event, archive"
     },
     {
       "from_match": "@mailva.evite.com",
       "max_age_days": 27,
       "action": "keep",
       "confidence": 0.85,
-      "reasoning": "Evite event invitation — keep (recent)"
+      "reasoning": "Evite event invitation \u2014 keep (recent)"
     },
     {
       "from_match": "evite@mailva.evite.com",
       "min_age_days": 28,
       "action": "archive",
       "confidence": 0.88,
-      "reasoning": "Evite event invitation >=28 days unread — past event, archive"
+      "reasoning": "Evite event invitation >=28 days unread \u2014 past event, archive"
     },
     {
       "from_match": "evite@mailva.evite.com",
       "max_age_days": 27,
       "action": "keep",
       "confidence": 0.85,
-      "reasoning": "Evite event invitation — keep (recent)"
+      "reasoning": "Evite event invitation \u2014 keep (recent)"
     },
     {
       "_note": "-- IndiGo airline (Indian carrier) marketing --"
@@ -1873,24 +1993,24 @@
       "from_match": "@marketing.goindigo.in",
       "action": "delete",
       "confidence": 0.9,
-      "reasoning": "IndiGo airline marketing — delete"
+      "reasoning": "IndiGo airline marketing \u2014 delete"
     },
     {
-      "_note": "-- OpenAI product emails — archive after 7 days --"
+      "_note": "-- OpenAI product emails \u2014 archive after 7 days --"
     },
     {
       "from_match": "@email.openai.com",
       "min_age_days": 7,
       "action": "archive",
       "confidence": 0.85,
-      "reasoning": "OpenAI product/newsletter ≥7 days unread — archive"
+      "reasoning": "OpenAI product/newsletter \u22657 days unread \u2014 archive"
     },
     {
       "from_match": "@email.openai.com",
       "max_age_days": 6,
       "action": "keep",
       "confidence": 0.8,
-      "reasoning": "Recent OpenAI email — keep"
+      "reasoning": "Recent OpenAI email \u2014 keep"
     },
     {
       "_note": "=== QUICK WINS FROM REMAINING UNCERTAIN ==="
@@ -1899,19 +2019,19 @@
       "from_match": "@marketing.carters.com",
       "action": "delete",
       "confidence": 0.95,
-      "reasoning": "Carter's marketing subdomain — delete"
+      "reasoning": "Carter's marketing subdomain \u2014 delete"
     },
     {
       "from_match": "@mg.homedepot.com",
       "action": "delete",
       "confidence": 0.92,
-      "reasoning": "Home Depot marketing — delete"
+      "reasoning": "Home Depot marketing \u2014 delete"
     },
     {
       "from_match": "@emails.thanx.com",
       "action": "delete",
       "confidence": 0.9,
-      "reasoning": "Thanx restaurant loyalty marketing — delete"
+      "reasoning": "Thanx restaurant loyalty marketing \u2014 delete"
     },
     {
       "_note": "Streaming services: split account notices vs marketing (body-fetch candidates for now use subject heuristic)"
@@ -1921,7 +2041,7 @@
       "subject_match": "your account",
       "action": "keep",
       "confidence": 0.85,
-      "reasoning": "Netflix account notice — keep"
+      "reasoning": "Netflix account notice \u2014 keep"
     },
     {
       "from_match": "@members.netflix.com",
@@ -1930,7 +2050,7 @@
       "label": "Bills/Subscriptions",
       "archive_after_label": true,
       "confidence": 0.88,
-      "reasoning": "Netflix payment — label Finance"
+      "reasoning": "Netflix payment \u2014 label Finance"
     },
     {
       "from_match": "@members.netflix.com",
@@ -1939,13 +2059,13 @@
       "label": "Receipts",
       "archive_after_label": true,
       "confidence": 0.9,
-      "reasoning": "Netflix receipt — label Receipts"
+      "reasoning": "Netflix receipt \u2014 label Receipts"
     },
     {
       "from_match": "@members.netflix.com",
       "action": "archive",
       "confidence": 0.82,
-      "reasoning": "Netflix marketing/misc — archive"
+      "reasoning": "Netflix marketing/misc \u2014 archive"
     },
     {
       "from_match": "@hulumail.com",
@@ -1954,7 +2074,7 @@
       "label": "Receipts",
       "archive_after_label": true,
       "confidence": 0.9,
-      "reasoning": "Hulu receipt — label Receipts"
+      "reasoning": "Hulu receipt \u2014 label Receipts"
     },
     {
       "from_match": "@hulumail.com",
@@ -1963,13 +2083,13 @@
       "label": "Bills/Subscriptions",
       "archive_after_label": true,
       "confidence": 0.88,
-      "reasoning": "Hulu payment — label Finance"
+      "reasoning": "Hulu payment \u2014 label Finance"
     },
     {
       "from_match": "@hulumail.com",
       "action": "archive",
       "confidence": 0.82,
-      "reasoning": "Hulu marketing/misc — archive"
+      "reasoning": "Hulu marketing/misc \u2014 archive"
     },
     {
       "from_match": "@messaging.disneyplus.com",
@@ -1978,7 +2098,7 @@
       "label": "Receipts",
       "archive_after_label": true,
       "confidence": 0.9,
-      "reasoning": "Disney+ receipt — label Receipts"
+      "reasoning": "Disney+ receipt \u2014 label Receipts"
     },
     {
       "from_match": "@messaging.disneyplus.com",
@@ -1987,13 +2107,13 @@
       "label": "Bills/Subscriptions",
       "archive_after_label": true,
       "confidence": 0.88,
-      "reasoning": "Disney+ payment — label Finance"
+      "reasoning": "Disney+ payment \u2014 label Finance"
     },
     {
       "from_match": "@messaging.disneyplus.com",
       "action": "archive",
       "confidence": 0.82,
-      "reasoning": "Disney+ marketing/misc — archive"
+      "reasoning": "Disney+ marketing/misc \u2014 archive"
     },
     {
       "from_match": "@email.chipotle.com",
@@ -2002,7 +2122,7 @@
       "label": "Receipts",
       "archive_after_label": true,
       "confidence": 0.9,
-      "reasoning": "Chipotle order — label Receipts"
+      "reasoning": "Chipotle order \u2014 label Receipts"
     },
     {
       "from_match": "@email.chipotle.com",
@@ -2011,44 +2131,44 @@
       "label": "Receipts",
       "archive_after_label": true,
       "confidence": 0.9,
-      "reasoning": "Chipotle receipt — label Receipts"
+      "reasoning": "Chipotle receipt \u2014 label Receipts"
     },
     {
       "from_match": "@email.chipotle.com",
       "action": "archive",
       "confidence": 0.82,
-      "reasoning": "Chipotle marketing — archive"
+      "reasoning": "Chipotle marketing \u2014 archive"
     },
     {
-      "_note": "=== GOVERNMENT / OFFICIAL SENDERS — keep recent, archive when old, never delete ==="
+      "_note": "=== GOVERNMENT / OFFICIAL SENDERS \u2014 keep recent, archive when old, never delete ==="
     },
     {
       "from_match": "@state.gov",
       "min_age_days": 30,
       "action": "archive",
       "confidence": 0.88,
-      "reasoning": "State Dept notice >=30 days unread — archive"
+      "reasoning": "State Dept notice >=30 days unread \u2014 archive"
     },
     {
       "from_match": "@state.gov",
       "max_age_days": 29,
       "action": "keep",
       "confidence": 0.88,
-      "reasoning": "Recent State Dept notice — keep"
+      "reasoning": "Recent State Dept notice \u2014 keep"
     },
     {
       "from_match": "@irs.gov",
       "min_age_days": 30,
       "action": "archive",
       "confidence": 0.88,
-      "reasoning": "IRS notice >=30 days unread — archive"
+      "reasoning": "IRS notice >=30 days unread \u2014 archive"
     },
     {
       "from_match": "@irs.gov",
       "max_age_days": 29,
       "action": "keep",
       "confidence": 0.92,
-      "reasoning": "Recent IRS notice — keep (important)"
+      "reasoning": "Recent IRS notice \u2014 keep (important)"
     },
     {
       "_note": "=== AGE GATES ADDED TO ALWAYS-KEEP RULES (2026-06-01) ==="
@@ -2058,7 +2178,7 @@
       "min_age_days": 14,
       "action": "archive",
       "confidence": 0.88,
-      "reasoning": "Calendar reminder >=14 days unread — past event, archive"
+      "reasoning": "Calendar reminder >=14 days unread \u2014 past event, archive"
     },
     {
       "from_match": "@parentsquare.com",
@@ -2067,7 +2187,7 @@
       "label": "School",
       "archive_after_label": true,
       "confidence": 0.88,
-      "reasoning": "ParentSquare school notice >=14 days unread — label School and archive"
+      "reasoning": "ParentSquare school notice >=14 days unread \u2014 label School and archive"
     },
     {
       "from_match": "@classdojo.com",
@@ -2076,7 +2196,7 @@
       "label": "School",
       "archive_after_label": true,
       "confidence": 0.88,
-      "reasoning": "ClassDojo school notice >=14 days unread — label School and archive"
+      "reasoning": "ClassDojo school notice >=14 days unread \u2014 label School and archive"
     },
     {
       "from_match": "@dublinusd.org",
@@ -2085,28 +2205,28 @@
       "label": "School",
       "archive_after_label": true,
       "confidence": 0.88,
-      "reasoning": "Dublin USD notice >=14 days unread — label School and archive"
+      "reasoning": "Dublin USD notice >=14 days unread \u2014 label School and archive"
     },
     {
       "from_match": "invitations@linkedin.com",
       "min_age_days": 30,
       "action": "archive",
       "confidence": 0.85,
-      "reasoning": "LinkedIn connection invite >=30 days unread — archive"
+      "reasoning": "LinkedIn connection invite >=30 days unread \u2014 archive"
     },
     {
       "from_match": "updates-noreply@linkedin.com",
       "min_age_days": 30,
       "action": "archive",
       "confidence": 0.85,
-      "reasoning": "LinkedIn activity notification >=30 days unread — archive"
+      "reasoning": "LinkedIn activity notification >=30 days unread \u2014 archive"
     },
     {
       "from_match": "@m.ouraring.com",
       "min_age_days": 14,
       "action": "archive",
       "confidence": 0.85,
-      "reasoning": "Oura ring health data >=14 days unread — archive"
+      "reasoning": "Oura ring health data >=14 days unread \u2014 archive"
     },
     {
       "from_match": "@usps.com",
@@ -2115,20 +2235,20 @@
       "label": "Shipping",
       "archive_after_label": true,
       "confidence": 0.88,
-      "reasoning": "USPS tracking >=14 days unread — label Shipping and archive"
+      "reasoning": "USPS tracking >=14 days unread \u2014 label Shipping and archive"
     },
     {
       "from_match": "@kp.org",
       "min_age_days": 14,
       "action": "archive",
       "confidence": 0.85,
-      "reasoning": "Kaiser care notice >=14 days unread — archive"
+      "reasoning": "Kaiser care notice >=14 days unread \u2014 archive"
     },
     {
       "_note": "=== BATCH 008 DERIVED RULES ==="
     },
     {
-      "_note": "-- CIT Bank (savings/money market) — Bank/Finance tier, archive after 7d --"
+      "_note": "-- CIT Bank (savings/money market) \u2014 Bank/Finance tier, archive after 7d --"
     },
     {
       "from_match": "@citbank.com",
@@ -2137,14 +2257,14 @@
       "label": "Investing",
       "archive_after_label": true,
       "confidence": 0.88,
-      "reasoning": "CIT Bank notice ≥7 days unread — label Investing and archive"
+      "reasoning": "CIT Bank notice \u22657 days unread \u2014 label Investing and archive"
     },
     {
       "from_match": "@citbank.com",
       "max_age_days": 6,
       "action": "keep",
       "confidence": 0.82,
-      "reasoning": "Recent CIT Bank notice — keep"
+      "reasoning": "Recent CIT Bank notice \u2014 keep"
     },
     {
       "_note": "=== BATCH 007 DERIVED RULES ==="
@@ -2154,28 +2274,28 @@
       "min_age_days": 7,
       "action": "archive",
       "confidence": 0.85,
-      "reasoning": "Xfinity service marketing ≥7 days unread — archive"
+      "reasoning": "Xfinity service marketing \u22657 days unread \u2014 archive"
     },
     {
       "from_match": "@updates.xfinity.com",
       "max_age_days": 6,
       "action": "keep",
       "confidence": 0.78,
-      "reasoning": "Recent Xfinity offer — keep"
+      "reasoning": "Recent Xfinity offer \u2014 keep"
     },
     {
       "from_match": "@patreon.com",
       "min_age_days": 7,
       "action": "archive",
       "confidence": 0.85,
-      "reasoning": "Patreon creator update ≥7 days unread — archive"
+      "reasoning": "Patreon creator update \u22657 days unread \u2014 archive"
     },
     {
       "from_match": "@patreon.com",
       "max_age_days": 6,
       "action": "keep",
       "confidence": 0.82,
-      "reasoning": "Recent Patreon creator update — keep"
+      "reasoning": "Recent Patreon creator update \u2014 keep"
     },
     {
       "from_match": "@info17.citi.com",
@@ -2184,7 +2304,7 @@
       "label": "Bank/Citi",
       "archive_after_label": true,
       "confidence": 0.9,
-      "reasoning": "Citi Home Depot card statement ≥14 days unread — label Bank/Citi and archive"
+      "reasoning": "Citi Home Depot card statement \u226514 days unread \u2014 label Bank/Citi and archive"
     },
     {
       "from_match": "@info17.citi.com",
@@ -2193,36 +2313,36 @@
       "label": "Bank/Citi",
       "archive_after_label": false,
       "confidence": 0.85,
-      "reasoning": "Recent Citi Home Depot card statement — label Bank/Citi, keep in inbox"
+      "reasoning": "Recent Citi Home Depot card statement \u2014 label Bank/Citi, keep in inbox"
     },
     {
       "from_match": "@em2.turbotax.intuit.com",
       "action": "keep",
       "confidence": 0.9,
-      "reasoning": "TurboTax tax document confirmation — keep (important)"
+      "reasoning": "TurboTax tax document confirmation \u2014 keep (important)"
     },
     {
       "_note": "=== BATCH 006 DERIVED RULES ==="
     },
     {
-      "_note": "-- Summ tax deadline reminders — keep recent, archive after 14d --"
+      "_note": "-- Summ tax deadline reminders \u2014 keep recent, archive after 14d --"
     },
     {
       "from_match": "@summ.com",
       "min_age_days": 14,
       "action": "archive",
       "confidence": 0.85,
-      "reasoning": "Summ tax reminder ≥14 days unread — deadline passed, archive"
+      "reasoning": "Summ tax reminder \u226514 days unread \u2014 deadline passed, archive"
     },
     {
       "from_match": "@summ.com",
       "max_age_days": 13,
       "action": "keep",
       "confidence": 0.85,
-      "reasoning": "Recent Summ tax deadline reminder — keep (time-sensitive)"
+      "reasoning": "Recent Summ tax deadline reminder \u2014 keep (time-sensitive)"
     },
     {
-      "_note": "-- Fundrise investor letters — Investing, archive after 7d --"
+      "_note": "-- Fundrise investor letters \u2014 Investing, archive after 7d --"
     },
     {
       "from_match": "@fundrise.com",
@@ -2231,7 +2351,7 @@
       "label": "Investing",
       "archive_after_label": true,
       "confidence": 0.88,
-      "reasoning": "Fundrise investor letter ≥7 days unread — label Investing and archive"
+      "reasoning": "Fundrise investor letter \u22657 days unread \u2014 label Investing and archive"
     },
     {
       "from_match": "@fundrise.com",
@@ -2240,10 +2360,10 @@
       "label": "Investing",
       "archive_after_label": false,
       "confidence": 0.82,
-      "reasoning": "Recent Fundrise investor letter — label Investing, keep in inbox"
+      "reasoning": "Recent Fundrise investor letter \u2014 label Investing, keep in inbox"
     },
     {
-      "_note": "-- Citi statements (info6 subdomain, transactional) — Bank/Citi, archive after 14d --"
+      "_note": "-- Citi statements (info6 subdomain, transactional) \u2014 Bank/Citi, archive after 14d --"
     },
     {
       "from_match": "@info6.citi.com",
@@ -2252,7 +2372,7 @@
       "label": "Bank/Citi",
       "archive_after_label": true,
       "confidence": 0.9,
-      "reasoning": "Citi statement ≥14 days unread — label Bank/Citi and archive"
+      "reasoning": "Citi statement \u226514 days unread \u2014 label Bank/Citi and archive"
     },
     {
       "from_match": "@info6.citi.com",
@@ -2261,24 +2381,24 @@
       "label": "Bank/Citi",
       "archive_after_label": false,
       "confidence": 0.85,
-      "reasoning": "Recent Citi statement — label Bank/Citi, keep in inbox"
+      "reasoning": "Recent Citi statement \u2014 label Bank/Citi, keep in inbox"
     },
     {
-      "_note": "-- Nest Home Reports — informational, archive after 7d --"
+      "_note": "-- Nest Home Reports \u2014 informational, archive after 7d --"
     },
     {
       "from_match": "@nest.com",
       "min_age_days": 7,
       "action": "archive",
       "confidence": 0.85,
-      "reasoning": "Nest Home Report ≥7 days unread — informational, archive"
+      "reasoning": "Nest Home Report \u22657 days unread \u2014 informational, archive"
     },
     {
       "from_match": "@nest.com",
       "max_age_days": 6,
       "action": "keep",
       "confidence": 0.78,
-      "reasoning": "Recent Nest Home Report — keep"
+      "reasoning": "Recent Nest Home Report \u2014 keep"
     },
     {
       "_note": "=== BATCH 005 DERIVED RULES ==="
@@ -2293,7 +2413,7 @@
       "label": "Bills/Utilities",
       "archive_after_label": true,
       "confidence": 0.9,
-      "reasoning": "PG&E bill ≥14 days unread — label Bills/Utilities and archive"
+      "reasoning": "PG&E bill \u226514 days unread \u2014 label Bills/Utilities and archive"
     },
     {
       "from_match": "@billpay.pge.com",
@@ -2302,7 +2422,7 @@
       "label": "Bills/Utilities",
       "archive_after_label": false,
       "confidence": 0.85,
-      "reasoning": "Recent PG&E bill — label Bills/Utilities, keep in inbox"
+      "reasoning": "Recent PG&E bill \u2014 label Bills/Utilities, keep in inbox"
     },
     {
       "_note": "-- Xfinity bill/payment (account subdomain, transactional) --"
@@ -2314,7 +2434,7 @@
       "label": "Bills/Utilities",
       "archive_after_label": true,
       "confidence": 0.9,
-      "reasoning": "Xfinity bill ≥14 days unread — label Bills/Utilities and archive"
+      "reasoning": "Xfinity bill \u226514 days unread \u2014 label Bills/Utilities and archive"
     },
     {
       "from_match": "@account.xfinity.com",
@@ -2323,16 +2443,16 @@
       "label": "Bills/Utilities",
       "archive_after_label": false,
       "confidence": 0.85,
-      "reasoning": "Recent Xfinity bill — label Bills/Utilities, keep in inbox"
+      "reasoning": "Recent Xfinity bill \u2014 label Bills/Utilities, keep in inbox"
     },
     {
-      "_note": "-- Kaiser main domain (care team messages) — keep --"
+      "_note": "-- Kaiser main domain (care team messages) \u2014 keep --"
     },
     {
       "from_match": "@kp.org",
       "action": "keep",
       "confidence": 0.88,
-      "reasoning": "Kaiser care-team message — keep (health)",
+      "reasoning": "Kaiser care-team message \u2014 keep (health)",
       "max_age_days": 13
     },
     {
@@ -2345,7 +2465,7 @@
       "label": "Bank/Chase",
       "archive_after_label": true,
       "confidence": 0.88,
-      "reasoning": "Chase credit-line offer ≥7 days unread — label Bank/Chase and archive"
+      "reasoning": "Chase credit-line offer \u22657 days unread \u2014 label Bank/Chase and archive"
     },
     {
       "from_match": "@mcmap.chase.com",
@@ -2354,10 +2474,10 @@
       "label": "Bank/Chase",
       "archive_after_label": false,
       "confidence": 0.82,
-      "reasoning": "Recent Chase credit-line offer — label Bank/Chase, keep in inbox"
+      "reasoning": "Recent Chase credit-line offer \u2014 label Bank/Chase, keep in inbox"
     },
     {
-      "_note": "-- Proxy votes — Investing, archive after 7d --"
+      "_note": "-- Proxy votes \u2014 Investing, archive after 7d --"
     },
     {
       "from_match": "@proxyvote.com",
@@ -2366,7 +2486,7 @@
       "label": "Investing",
       "archive_after_label": true,
       "confidence": 0.88,
-      "reasoning": "Proxy vote ≥7 days unread — label Investing and archive"
+      "reasoning": "Proxy vote \u22657 days unread \u2014 label Investing and archive"
     },
     {
       "from_match": "@proxyvote.com",
@@ -2375,10 +2495,10 @@
       "label": "Investing",
       "archive_after_label": false,
       "confidence": 0.82,
-      "reasoning": "Recent proxy vote — label Investing, keep in inbox"
+      "reasoning": "Recent proxy vote \u2014 label Investing, keep in inbox"
     },
     {
-      "_note": "-- Prospectus delivery — Investing, archive after 14d --"
+      "_note": "-- Prospectus delivery \u2014 Investing, archive after 14d --"
     },
     {
       "from_match": "@investordelivery.com",
@@ -2387,7 +2507,7 @@
       "label": "Investing",
       "archive_after_label": true,
       "confidence": 0.88,
-      "reasoning": "Prospectus notice ≥14 days unread — label Investing and archive"
+      "reasoning": "Prospectus notice \u226514 days unread \u2014 label Investing and archive"
     },
     {
       "from_match": "@investordelivery.com",
@@ -2396,7 +2516,7 @@
       "label": "Investing",
       "archive_after_label": false,
       "confidence": 0.82,
-      "reasoning": "Recent prospectus notice — label Investing, keep in inbox"
+      "reasoning": "Recent prospectus notice \u2014 label Investing, keep in inbox"
     },
     {
       "_note": "-- Toyota service marketing --"
@@ -2406,14 +2526,14 @@
       "min_age_days": 7,
       "action": "archive",
       "confidence": 0.85,
-      "reasoning": "Toyota service marketing ≥7 days unread — archive"
+      "reasoning": "Toyota service marketing \u22657 days unread \u2014 archive"
     },
     {
       "from_match": "@e.toyota.com",
       "max_age_days": 6,
       "action": "keep",
       "confidence": 0.75,
-      "reasoning": "Recent Toyota service marketing — keep"
+      "reasoning": "Recent Toyota service marketing \u2014 keep"
     },
     {
       "_note": "-- Nest/Renew Home energy program marketing --"
@@ -2423,61 +2543,61 @@
       "min_age_days": 7,
       "action": "archive",
       "confidence": 0.85,
-      "reasoning": "Renew Home (Nest) energy program ≥7 days unread — archive"
+      "reasoning": "Renew Home (Nest) energy program \u22657 days unread \u2014 archive"
     },
     {
       "from_match": "@renewhome.com",
       "max_age_days": 6,
       "action": "keep",
       "confidence": 0.78,
-      "reasoning": "Recent Renew Home notice — keep"
+      "reasoning": "Recent Renew Home notice \u2014 keep"
     },
     {
       "_note": "=== INBOX SCREENSHOT FIXES (2026-06-01) ==="
     },
     {
-      "_note": "-- AAA Life insurance sales agent — archive after 14d (repeated sales emails, not policy docs) --"
+      "_note": "-- AAA Life insurance sales agent \u2014 archive after 14d (repeated sales emails, not policy docs) --"
     },
     {
       "from_match": "@aaalife.com",
       "min_age_days": 14,
       "action": "archive",
       "confidence": 0.88,
-      "reasoning": "AAA Life insurance sales email >=14 days unread — archive"
+      "reasoning": "AAA Life insurance sales email >=14 days unread \u2014 archive"
     },
     {
       "from_match": "@aaalife.com",
       "max_age_days": 13,
       "action": "keep",
       "confidence": 0.82,
-      "reasoning": "Recent AAA Life email — keep"
+      "reasoning": "Recent AAA Life email \u2014 keep"
     },
     {
-      "_note": "-- Way.com travel/parking app — archive after 7d --"
+      "_note": "-- Way.com travel/parking app \u2014 archive after 7d --"
     },
     {
       "from_match": "@way.com",
       "min_age_days": 7,
       "action": "archive",
       "confidence": 0.88,
-      "reasoning": "Way.com travel/parking notice >=7 days unread — archive"
+      "reasoning": "Way.com travel/parking notice >=7 days unread \u2014 archive"
     },
     {
       "from_match": "@way.com",
       "max_age_days": 6,
       "action": "keep",
       "confidence": 0.82,
-      "reasoning": "Recent Way.com notice — keep"
+      "reasoning": "Recent Way.com notice \u2014 keep"
     },
     {
-      "_note": "-- Airbnb — label Travel; keep recent booking, archive after 30d --"
+      "_note": "-- Airbnb \u2014 label Travel; keep recent booking, archive after 30d --"
     },
     {
       "from_match": "@airbnb.com",
       "subject_match": "login",
       "action": "keep",
       "confidence": 0.92,
-      "reasoning": "Airbnb login alert — keep"
+      "reasoning": "Airbnb login alert \u2014 keep"
     },
     {
       "from_match": "@airbnb.com",
@@ -2486,7 +2606,7 @@
       "label": "Travel",
       "archive_after_label": true,
       "confidence": 0.9,
-      "reasoning": "Airbnb booking/notice >=30 days unread — label Travel and archive"
+      "reasoning": "Airbnb booking/notice >=30 days unread \u2014 label Travel and archive"
     },
     {
       "from_match": "@airbnb.com",
@@ -2495,10 +2615,10 @@
       "label": "Travel",
       "archive_after_label": false,
       "confidence": 0.88,
-      "reasoning": "Recent Airbnb booking/notice — label Travel, keep in inbox"
+      "reasoning": "Recent Airbnb booking/notice \u2014 label Travel, keep in inbox"
     },
     {
-      "_note": "-- Air Canada flight notifications — label Travel, archive after 14d (trip is over) --"
+      "_note": "-- Air Canada flight notifications \u2014 label Travel, archive after 14d (trip is over) --"
     },
     {
       "from_match": "@info.aircanada.com",
@@ -2507,7 +2627,7 @@
       "label": "Travel",
       "archive_after_label": true,
       "confidence": 0.9,
-      "reasoning": "Air Canada flight notice >=14 days unread — label Travel and archive"
+      "reasoning": "Air Canada flight notice >=14 days unread \u2014 label Travel and archive"
     },
     {
       "from_match": "@info.aircanada.com",
@@ -2516,7 +2636,7 @@
       "label": "Travel",
       "archive_after_label": false,
       "confidence": 0.88,
-      "reasoning": "Recent Air Canada flight notice — label Travel, keep in inbox"
+      "reasoning": "Recent Air Canada flight notice \u2014 label Travel, keep in inbox"
     },
     {
       "from_match": "@mail.aircanada.com",
@@ -2525,7 +2645,7 @@
       "label": "Travel",
       "archive_after_label": true,
       "confidence": 0.9,
-      "reasoning": "Air Canada email >=14 days unread — label Travel and archive"
+      "reasoning": "Air Canada email >=14 days unread \u2014 label Travel and archive"
     },
     {
       "from_match": "@mail.aircanada.com",
@@ -2534,25 +2654,25 @@
       "label": "Travel",
       "archive_after_label": false,
       "confidence": 0.88,
-      "reasoning": "Recent Air Canada email — label Travel, keep in inbox"
+      "reasoning": "Recent Air Canada email \u2014 label Travel, keep in inbox"
     },
     {
-      "_note": "-- Post-visit survey spam — delete --"
+      "_note": "-- Post-visit survey spam \u2014 delete --"
     },
     {
       "from_match": "@inguest.com",
       "action": "delete",
       "confidence": 0.9,
-      "reasoning": "Post-visit hotel/gondola survey — delete"
+      "reasoning": "Post-visit hotel/gondola survey \u2014 delete"
     },
     {
       "from_match": "@qualtrics-research.com",
       "action": "delete",
       "confidence": 0.9,
-      "reasoning": "Qualtrics survey — delete"
+      "reasoning": "Qualtrics survey \u2014 delete"
     },
     {
-      "_note": "-- PG&E advisory/newsletter (not a work/outage alert) — archive after 14d --"
+      "_note": "-- PG&E advisory/newsletter (not a work/outage alert) \u2014 archive after 14d --"
     },
     {
       "from_match": "@notifications.pge.com",
@@ -2560,7 +2680,7 @@
       "min_age_days": 14,
       "action": "archive",
       "confidence": 0.88,
-      "reasoning": "PG&E advisory/tip email >=14 days unread — archive"
+      "reasoning": "PG&E advisory/tip email >=14 days unread \u2014 archive"
     },
     {
       "from_match": "@notifications.pge.com",
@@ -2568,7 +2688,7 @@
       "min_age_days": 14,
       "action": "archive",
       "confidence": 0.88,
-      "reasoning": "PG&E Energy Advisor newsletter >=14 days unread — archive"
+      "reasoning": "PG&E Energy Advisor newsletter >=14 days unread \u2014 archive"
     },
     {
       "from_match": "@notifications.pge.com",
@@ -2576,7 +2696,7 @@
       "min_age_days": 14,
       "action": "archive",
       "confidence": 0.88,
-      "reasoning": "PG&E safety tip >=14 days unread — archive"
+      "reasoning": "PG&E safety tip >=14 days unread \u2014 archive"
     },
     {
       "from_match": "@notifications.pge.com",
@@ -2584,10 +2704,10 @@
       "min_age_days": 14,
       "action": "archive",
       "confidence": 0.88,
-      "reasoning": "PG&E scam alert >=14 days unread — archive"
+      "reasoning": "PG&E scam alert >=14 days unread \u2014 archive"
     },
     {
-      "_note": "-- Coinbase terms/legal updates — archive after 14d --"
+      "_note": "-- Coinbase terms/legal updates \u2014 archive after 14d --"
     },
     {
       "from_match": "@mail.coinbase.com",
@@ -2597,7 +2717,7 @@
       "label": "Finance/Crypto",
       "archive_after_label": true,
       "confidence": 0.88,
-      "reasoning": "Coinbase agreement/legal update >=14 days unread — label Finance/Crypto and archive"
+      "reasoning": "Coinbase agreement/legal update >=14 days unread \u2014 label Finance/Crypto and archive"
     },
     {
       "from_match": "@mail.coinbase.com",
@@ -2607,30 +2727,30 @@
       "label": "Finance/Crypto",
       "archive_after_label": true,
       "confidence": 0.88,
-      "reasoning": "Coinbase update >=14 days unread — label Finance/Crypto and archive"
+      "reasoning": "Coinbase update >=14 days unread \u2014 label Finance/Crypto and archive"
     },
     {
       "_note": "=== INBOX AUDIT FIXES (2026-06-01) ==="
     },
     {
-      "_note": "-- Watsi charity updates — delete if unread after 14d (personal charity, not bulk list) --"
+      "_note": "-- Watsi charity updates \u2014 delete if unread after 14d (personal charity, not bulk list) --"
     },
     {
       "from_match": "@watsi.org",
       "min_age_days": 14,
       "action": "delete",
       "confidence": 0.88,
-      "reasoning": "Watsi charity update >=14 days unread — delete"
+      "reasoning": "Watsi charity update >=14 days unread \u2014 delete"
     },
     {
       "from_match": "@watsi.org",
       "max_age_days": 13,
       "action": "keep",
       "confidence": 0.88,
-      "reasoning": "Recent Watsi charity update — keep"
+      "reasoning": "Recent Watsi charity update \u2014 keep"
     },
     {
-      "_note": "-- Sigma Xi — label Memberships, archive after 14d --"
+      "_note": "-- Sigma Xi \u2014 label Memberships, archive after 14d --"
     },
     {
       "from_match": "@sigmaxi.org",
@@ -2639,17 +2759,17 @@
       "label": "Memberships",
       "archive_after_label": true,
       "confidence": 0.88,
-      "reasoning": "Sigma Xi member/event notice >=14 days unread — label Memberships and archive"
+      "reasoning": "Sigma Xi member/event notice >=14 days unread \u2014 label Memberships and archive"
     },
     {
       "from_match": "@sigmaxi.org",
       "max_age_days": 13,
       "action": "keep",
       "confidence": 0.85,
-      "reasoning": "Recent Sigma Xi notice — keep"
+      "reasoning": "Recent Sigma Xi notice \u2014 keep"
     },
     {
-      "_note": "-- Riviera Partners recruiter — label Jobs, archive after 14d --"
+      "_note": "-- Riviera Partners recruiter \u2014 label Jobs, archive after 14d --"
     },
     {
       "from_match": "@rivierapartners.com",
@@ -2658,7 +2778,7 @@
       "label": "Jobs",
       "archive_after_label": true,
       "confidence": 0.88,
-      "reasoning": "Riviera Partners recruiter email >=14 days unread — label Jobs and archive"
+      "reasoning": "Riviera Partners recruiter email >=14 days unread \u2014 label Jobs and archive"
     },
     {
       "from_match": "@rivierapartners.com",
@@ -2667,44 +2787,44 @@
       "label": "Jobs",
       "archive_after_label": false,
       "confidence": 0.88,
-      "reasoning": "Recent Riviera Partners recruiter email — label Jobs, keep in inbox"
+      "reasoning": "Recent Riviera Partners recruiter email \u2014 label Jobs, keep in inbox"
     },
     {
-      "_note": "-- Picnic support threads (not job-related) — archive after 14d --"
+      "_note": "-- Picnic support threads (not job-related) \u2014 archive after 14d --"
     },
     {
       "from_match": "@trypicnic.com",
       "min_age_days": 14,
       "action": "archive",
       "confidence": 0.88,
-      "reasoning": "Picnic support thread >=14 days unread — archive"
+      "reasoning": "Picnic support thread >=14 days unread \u2014 archive"
     },
     {
       "from_match": "@trypicnic.com",
       "max_age_days": 13,
       "action": "keep",
       "confidence": 0.85,
-      "reasoning": "Recent Picnic support thread — keep"
+      "reasoning": "Recent Picnic support thread \u2014 keep"
     },
     {
       "from_match": "@try-picnic.zendesk.com",
       "min_age_days": 14,
       "action": "archive",
       "confidence": 0.88,
-      "reasoning": "Picnic support thread >=14 days unread — archive"
+      "reasoning": "Picnic support thread >=14 days unread \u2014 archive"
     },
     {
       "from_match": "@try-picnic.zendesk.com",
       "max_age_days": 13,
       "action": "keep",
       "confidence": 0.85,
-      "reasoning": "Recent Picnic support thread — keep"
+      "reasoning": "Recent Picnic support thread \u2014 keep"
     },
     {
       "_note": "=== RECENT INBOX REVIEW FIXES (2026-06-01) ==="
     },
     {
-      "_note": "-- DPIE afterschool/summer program — label School, keep recent, archive after 14d --"
+      "_note": "-- DPIE afterschool/summer program \u2014 label School, keep recent, archive after 14d --"
     },
     {
       "from_match": "@dpie.org",
@@ -2713,7 +2833,7 @@
       "label": "School",
       "archive_after_label": true,
       "confidence": 0.88,
-      "reasoning": "DPIE afterschool/summer program notice >=14 days unread — label School and archive"
+      "reasoning": "DPIE afterschool/summer program notice >=14 days unread \u2014 label School and archive"
     },
     {
       "from_match": "@dpie.org",
@@ -2722,10 +2842,10 @@
       "label": "School",
       "archive_after_label": false,
       "confidence": 0.88,
-      "reasoning": "DPIE afterschool/summer program notice — label School, keep in inbox"
+      "reasoning": "DPIE afterschool/summer program notice \u2014 label School, keep in inbox"
     },
     {
-      "_note": "-- Monarch weekly recap — label Finance, archive after 14d --"
+      "_note": "-- Monarch weekly recap \u2014 label Finance, archive after 14d --"
     },
     {
       "from_match": "@updates.monarch.com",
@@ -2734,7 +2854,7 @@
       "label": "Finance",
       "archive_after_label": true,
       "confidence": 0.88,
-      "reasoning": "Monarch weekly recap >=14 days unread — label Finance and archive"
+      "reasoning": "Monarch weekly recap >=14 days unread \u2014 label Finance and archive"
     },
     {
       "from_match": "@updates.monarch.com",
@@ -2743,10 +2863,10 @@
       "label": "Finance",
       "archive_after_label": false,
       "confidence": 0.88,
-      "reasoning": "Monarch weekly recap — label Finance, keep in inbox"
+      "reasoning": "Monarch weekly recap \u2014 label Finance, keep in inbox"
     },
     {
-      "_note": "-- PayPal statements and account notices — label Finance, archive after 14d --"
+      "_note": "-- PayPal statements and account notices \u2014 label Finance, archive after 14d --"
     },
     {
       "from_match": "@service.paypal.com",
@@ -2755,7 +2875,7 @@
       "label": "Finance",
       "archive_after_label": true,
       "confidence": 0.88,
-      "reasoning": "PayPal account statement >=14 days unread — label Finance and archive"
+      "reasoning": "PayPal account statement >=14 days unread \u2014 label Finance and archive"
     },
     {
       "from_match": "@service.paypal.com",
@@ -2764,10 +2884,10 @@
       "label": "Finance",
       "archive_after_label": false,
       "confidence": 0.88,
-      "reasoning": "PayPal account statement — label Finance, keep in inbox"
+      "reasoning": "PayPal account statement \u2014 label Finance, keep in inbox"
     },
     {
-      "_note": "-- City of Dublin Parks — label School (kids activities), keep recent, archive after 14d --"
+      "_note": "-- City of Dublin Parks \u2014 label School (kids activities), keep recent, archive after 14d --"
     },
     {
       "from_match": "cityofdublinparks@active.com",
@@ -2776,7 +2896,7 @@
       "label": "School",
       "archive_after_label": true,
       "confidence": 0.88,
-      "reasoning": "City of Dublin Parks program notice >=14 days unread — label School and archive"
+      "reasoning": "City of Dublin Parks program notice >=14 days unread \u2014 label School and archive"
     },
     {
       "from_match": "cityofdublinparks@active.com",
@@ -2785,13 +2905,13 @@
       "label": "School",
       "archive_after_label": false,
       "confidence": 0.88,
-      "reasoning": "City of Dublin Parks program notice — label School, keep in inbox"
+      "reasoning": "City of Dublin Parks program notice \u2014 label School, keep in inbox"
     },
     {
       "_note": "=== LOW-CONF BULK RULES FIX (2026-06-01) ==="
     },
     {
-      "_note": "-- Xfinity/Comcast alerts subdomain — label Bills/Utilities if bill, archive after 7d otherwise --"
+      "_note": "-- Xfinity/Comcast alerts subdomain \u2014 label Bills/Utilities if bill, archive after 7d otherwise --"
     },
     {
       "from_match": "@alerts.comcast.net",
@@ -2801,7 +2921,7 @@
       "label": "Bills/Utilities",
       "archive_after_label": true,
       "confidence": 0.9,
-      "reasoning": "Xfinity bill statement >=7 days unread — label Bills/Utilities and archive"
+      "reasoning": "Xfinity bill statement >=7 days unread \u2014 label Bills/Utilities and archive"
     },
     {
       "from_match": "@alerts.comcast.net",
@@ -2810,24 +2930,24 @@
       "label": "Bills/Utilities",
       "archive_after_label": false,
       "confidence": 0.9,
-      "reasoning": "Recent Xfinity bill — label Bills/Utilities, keep in inbox"
+      "reasoning": "Recent Xfinity bill \u2014 label Bills/Utilities, keep in inbox"
     },
     {
       "from_match": "@alerts.comcast.net",
       "min_age_days": 7,
       "action": "archive",
       "confidence": 0.88,
-      "reasoning": "Xfinity/Comcast alert >=7 days unread — archive"
+      "reasoning": "Xfinity/Comcast alert >=7 days unread \u2014 archive"
     },
     {
       "from_match": "@alerts.comcast.net",
       "max_age_days": 6,
       "action": "keep",
       "confidence": 0.85,
-      "reasoning": "Recent Xfinity/Comcast alert — keep"
+      "reasoning": "Recent Xfinity/Comcast alert \u2014 keep"
     },
     {
-      "_note": "-- online.communications@alerts.comcast.net — same treatment --"
+      "_note": "-- online.communications@alerts.comcast.net \u2014 same treatment --"
     },
     {
       "from_match": "online.communications@alerts.comcast.net",
@@ -2837,7 +2957,7 @@
       "label": "Bills/Utilities",
       "archive_after_label": true,
       "confidence": 0.9,
-      "reasoning": "Xfinity bill >=7 days unread — label Bills/Utilities and archive"
+      "reasoning": "Xfinity bill >=7 days unread \u2014 label Bills/Utilities and archive"
     },
     {
       "from_match": "online.communications@alerts.comcast.net",
@@ -2846,24 +2966,24 @@
       "label": "Bills/Utilities",
       "archive_after_label": false,
       "confidence": 0.9,
-      "reasoning": "Recent Xfinity bill — label Bills/Utilities, keep"
+      "reasoning": "Recent Xfinity bill \u2014 label Bills/Utilities, keep"
     },
     {
       "from_match": "online.communications@alerts.comcast.net",
       "min_age_days": 7,
       "action": "archive",
       "confidence": 0.88,
-      "reasoning": "Xfinity/Comcast notice >=7 days unread — archive"
+      "reasoning": "Xfinity/Comcast notice >=7 days unread \u2014 archive"
     },
     {
       "from_match": "online.communications@alerts.comcast.net",
       "max_age_days": 6,
       "action": "keep",
       "confidence": 0.85,
-      "reasoning": "Recent Xfinity/Comcast notice — keep"
+      "reasoning": "Recent Xfinity/Comcast notice \u2014 keep"
     },
     {
-      "_note": "-- CIT Bank alerts subdomain — archive after 7d --"
+      "_note": "-- CIT Bank alerts subdomain \u2014 archive after 7d --"
     },
     {
       "from_match": "@alerts.citbank.com",
@@ -2872,17 +2992,17 @@
       "label": "Investing",
       "archive_after_label": true,
       "confidence": 0.88,
-      "reasoning": "CIT Bank alert >=7 days unread — label Investing and archive"
+      "reasoning": "CIT Bank alert >=7 days unread \u2014 label Investing and archive"
     },
     {
       "from_match": "@alerts.citbank.com",
       "max_age_days": 6,
       "action": "keep",
       "confidence": 0.85,
-      "reasoning": "Recent CIT Bank alert — keep"
+      "reasoning": "Recent CIT Bank alert \u2014 keep"
     },
     {
-      "_note": "-- Bay Area FasTrak — label Bills, archive after 14d --"
+      "_note": "-- Bay Area FasTrak \u2014 label Bills, archive after 14d --"
     },
     {
       "from_match": "@bayareafastrak.org",
@@ -2891,7 +3011,7 @@
       "label": "Bills",
       "archive_after_label": true,
       "confidence": 0.9,
-      "reasoning": "FasTrak toll statement >=14 days unread — label Bills and archive"
+      "reasoning": "FasTrak toll statement >=14 days unread \u2014 label Bills and archive"
     },
     {
       "from_match": "@bayareafastrak.org",
@@ -2900,10 +3020,10 @@
       "label": "Bills",
       "archive_after_label": false,
       "confidence": 0.88,
-      "reasoning": "Recent FasTrak toll statement — label Bills, keep in inbox"
+      "reasoning": "Recent FasTrak toll statement \u2014 label Bills, keep in inbox"
     },
     {
-      "_note": "-- Starbucks card reloads — label Receipts, archive after 7d --"
+      "_note": "-- Starbucks card reloads \u2014 label Receipts, archive after 7d --"
     },
     {
       "from_match": "@starbucks.com",
@@ -2912,7 +3032,7 @@
       "label": "Receipts",
       "archive_after_label": true,
       "confidence": 0.88,
-      "reasoning": "Starbucks card reload >=7 days unread — label Receipts and archive"
+      "reasoning": "Starbucks card reload >=7 days unread \u2014 label Receipts and archive"
     },
     {
       "from_match": "@starbucks.com",
@@ -2921,27 +3041,27 @@
       "label": "Receipts",
       "archive_after_label": false,
       "confidence": 0.85,
-      "reasoning": "Recent Starbucks card reload — label Receipts, keep in inbox"
+      "reasoning": "Recent Starbucks card reload \u2014 label Receipts, keep in inbox"
     },
     {
-      "_note": "-- remindmemd.com appointment reminders — keep recent, archive after 14d --"
+      "_note": "-- remindmemd.com appointment reminders \u2014 keep recent, archive after 14d --"
     },
     {
       "from_match": "@remindmemd.com",
       "min_age_days": 14,
       "action": "archive",
       "confidence": 0.88,
-      "reasoning": "Doctor/optometry appointment reminder >=14 days unread — archive"
+      "reasoning": "Doctor/optometry appointment reminder >=14 days unread \u2014 archive"
     },
     {
       "from_match": "@remindmemd.com",
       "max_age_days": 13,
       "action": "keep",
       "confidence": 0.88,
-      "reasoning": "Recent appointment reminder — keep"
+      "reasoning": "Recent appointment reminder \u2014 keep"
     },
     {
-      "_note": "-- Brightwheel daycare payments — label Receipts, archive after 7d --"
+      "_note": "-- Brightwheel daycare payments \u2014 label Receipts, archive after 7d --"
     },
     {
       "from_match": "@mybrightwheel.com",
@@ -2950,7 +3070,7 @@
       "label": "Receipts",
       "archive_after_label": true,
       "confidence": 0.88,
-      "reasoning": "Brightwheel daycare payment >=7 days unread — label Receipts and archive"
+      "reasoning": "Brightwheel daycare payment >=7 days unread \u2014 label Receipts and archive"
     },
     {
       "from_match": "@mybrightwheel.com",
@@ -2959,10 +3079,10 @@
       "label": "Receipts",
       "archive_after_label": false,
       "confidence": 0.85,
-      "reasoning": "Recent Brightwheel payment — label Receipts, keep in inbox"
+      "reasoning": "Recent Brightwheel payment \u2014 label Receipts, keep in inbox"
     },
     {
-      "_note": "-- Home Depot orders/delivery — label Receipts, archive after 7d --"
+      "_note": "-- Home Depot orders/delivery \u2014 label Receipts, archive after 7d --"
     },
     {
       "from_match": "@order.homedepot.com",
@@ -2971,7 +3091,7 @@
       "label": "Receipts",
       "archive_after_label": true,
       "confidence": 0.88,
-      "reasoning": "Home Depot order/delivery >=7 days unread — label Receipts and archive"
+      "reasoning": "Home Depot order/delivery >=7 days unread \u2014 label Receipts and archive"
     },
     {
       "from_match": "@order.homedepot.com",
@@ -2980,54 +3100,54 @@
       "label": "Receipts",
       "archive_after_label": false,
       "confidence": 0.85,
-      "reasoning": "Recent Home Depot order — label Receipts, keep in inbox"
+      "reasoning": "Recent Home Depot order \u2014 label Receipts, keep in inbox"
     },
     {
-      "_note": "-- GitHub CI/action notifications — archive after 7d --"
+      "_note": "-- GitHub CI/action notifications \u2014 archive after 7d --"
     },
     {
       "from_match": "@github.com",
       "min_age_days": 7,
       "action": "archive",
       "confidence": 0.88,
-      "reasoning": "GitHub notification >=7 days unread — archive"
+      "reasoning": "GitHub notification >=7 days unread \u2014 archive"
     },
     {
       "from_match": "@github.com",
       "max_age_days": 6,
       "action": "keep",
       "confidence": 0.82,
-      "reasoning": "Recent GitHub notification — keep"
+      "reasoning": "Recent GitHub notification \u2014 keep"
     },
     {
-      "_note": "-- WageWorks non-commuter account notices — archive after 7d --"
+      "_note": "-- WageWorks non-commuter account notices \u2014 archive after 7d --"
     },
     {
       "from_match": "@wageworks.com",
       "min_age_days": 7,
       "action": "archive",
       "confidence": 0.88,
-      "reasoning": "WageWorks account notice >=7 days unread — archive"
+      "reasoning": "WageWorks account notice >=7 days unread \u2014 archive"
     },
     {
       "from_match": "@wageworks.com",
       "max_age_days": 6,
       "action": "keep",
       "confidence": 0.82,
-      "reasoning": "Recent WageWorks notice — keep"
+      "reasoning": "Recent WageWorks notice \u2014 keep"
     },
     {
       "_note": "-- Delete: allergy store, powertofly, educative, dominos, carmax, goggles4u --"
     },
     {
-      "_note": "Allergy Store — orders/shipping keep; marketing move to Promotions tab",
+      "_note": "Allergy Store \u2014 orders/shipping keep; marketing move to Promotions tab",
       "from_match": "@allergystore.com",
       "subject_match": "order",
       "action": "label",
       "label": "Receipts",
       "archive_after_label": true,
       "confidence": 0.92,
-      "reasoning": "Allergy Store order — label Receipts and archive"
+      "reasoning": "Allergy Store order \u2014 label Receipts and archive"
     },
     {
       "from_match": "@allergystore.com",
@@ -3036,7 +3156,7 @@
       "label": "Receipts",
       "archive_after_label": true,
       "confidence": 0.92,
-      "reasoning": "Allergy Store shipping — label Receipts and archive"
+      "reasoning": "Allergy Store shipping \u2014 label Receipts and archive"
     },
     {
       "from_match": "@allergystore.com",
@@ -3045,7 +3165,7 @@
       "label": "Receipts",
       "archive_after_label": true,
       "confidence": 0.92,
-      "reasoning": "Allergy Store delivery — label Receipts and archive"
+      "reasoning": "Allergy Store delivery \u2014 label Receipts and archive"
     },
     {
       "from_match": "@allergystore.com",
@@ -3054,7 +3174,7 @@
       "label": "Receipts",
       "archive_after_label": true,
       "confidence": 0.92,
-      "reasoning": "Allergy Store invoice — label Receipts and archive"
+      "reasoning": "Allergy Store invoice \u2014 label Receipts and archive"
     },
     {
       "from_match": "@allergystore.com",
@@ -3062,44 +3182,44 @@
       "label": "CATEGORY_PROMOTIONS",
       "archive_after_label": false,
       "confidence": 0.92,
-      "reasoning": "Allergy Store marketing — move to Promotions tab"
+      "reasoning": "Allergy Store marketing \u2014 move to Promotions tab"
     },
     {
       "from_match": "@powertofly.com",
       "action": "delete",
       "confidence": 0.92,
-      "reasoning": "PowerToFly job/tech marketing — delete"
+      "reasoning": "PowerToFly job/tech marketing \u2014 delete"
     },
     {
-      "_note": "Educative.io — course library updates archive after 14d, promo emails from zach.m/caitlin.w delete",
+      "_note": "Educative.io \u2014 course library updates archive after 14d, promo emails from zach.m/caitlin.w delete",
       "from_match": "support@educative.io",
       "min_age_days": 14,
       "action": "archive",
       "confidence": 0.88,
-      "reasoning": "Educative.io course update >=14 days unread — archive"
+      "reasoning": "Educative.io course update >=14 days unread \u2014 archive"
     },
     {
       "from_match": "support@educative.io",
       "max_age_days": 13,
       "action": "keep",
       "confidence": 0.85,
-      "reasoning": "Recent Educative.io course update — keep"
+      "reasoning": "Recent Educative.io course update \u2014 keep"
     },
     {
       "from_match": "@educative.io",
       "action": "delete",
       "confidence": 0.92,
-      "reasoning": "Educative.io marketing email — delete"
+      "reasoning": "Educative.io marketing email \u2014 delete"
     },
     {
-      "_note": "Domino's real orders — label Receipts, archive after 7d",
+      "_note": "Domino's real orders \u2014 label Receipts, archive after 7d",
       "from_match": "orders@dominos.com",
       "min_age_days": 7,
       "action": "label",
       "label": "Receipts",
       "archive_after_label": true,
       "confidence": 0.92,
-      "reasoning": "Domino's order >=7 days unread — label Receipts and archive"
+      "reasoning": "Domino's order >=7 days unread \u2014 label Receipts and archive"
     },
     {
       "from_match": "orders@dominos.com",
@@ -3107,16 +3227,16 @@
       "label": "Receipts",
       "archive_after_label": false,
       "confidence": 0.92,
-      "reasoning": "Recent Domino's order — label Receipts, keep in inbox"
+      "reasoning": "Recent Domino's order \u2014 label Receipts, keep in inbox"
     },
     {
-      "_note": "Domino's e-rewards promo subdomain — move to Promotions tab (not Primary)",
+      "_note": "Domino's e-rewards promo subdomain \u2014 move to Promotions tab (not Primary)",
       "from_match": "@e-rewards.dominos.com",
       "action": "label",
       "label": "CATEGORY_PROMOTIONS",
       "archive_after_label": false,
       "confidence": 0.92,
-      "reasoning": "Domino's rewards promo — move to Promotions tab"
+      "reasoning": "Domino's rewards promo \u2014 move to Promotions tab"
     },
     {
       "from_match": "@rewards.e-rewards.dominos.com",
@@ -3124,39 +3244,39 @@
       "label": "CATEGORY_PROMOTIONS",
       "archive_after_label": false,
       "confidence": 0.92,
-      "reasoning": "Domino's rewards promo — move to Promotions tab"
+      "reasoning": "Domino's rewards promo \u2014 move to Promotions tab"
     },
     {
-      "_note": "CarMax — car search alerts, label Shopping and archive (purchase done)",
+      "_note": "CarMax \u2014 car search alerts, label Shopping and archive (purchase done)",
       "from_match": "@email-carmax.com",
       "action": "label",
       "label": "Shopping",
       "archive_after_label": true,
       "confidence": 0.92,
-      "reasoning": "CarMax car alert — label Shopping and archive (purchase complete)"
+      "reasoning": "CarMax car alert \u2014 label Shopping and archive (purchase complete)"
     },
     {
       "_note": "=== KEEP/NEEDS-INPUT RULES (2026-06-01) ==="
     },
     {
-      "_note": "-- Disney+ login notices — archive after 7d --"
+      "_note": "-- Disney+ login notices \u2014 archive after 7d --"
     },
     {
       "from_match": "@trx.mail2.disneyplus.com",
       "min_age_days": 7,
       "action": "archive",
       "confidence": 0.88,
-      "reasoning": "Disney+ login/account notice >=7 days unread — archive"
+      "reasoning": "Disney+ login/account notice >=7 days unread \u2014 archive"
     },
     {
       "from_match": "@trx.mail2.disneyplus.com",
       "max_age_days": 6,
       "action": "keep",
       "confidence": 0.85,
-      "reasoning": "Recent Disney+ login notice — keep"
+      "reasoning": "Recent Disney+ login notice \u2014 keep"
     },
     {
-      "_note": "-- Meta recruiting — label Jobs, archive after 14d --"
+      "_note": "-- Meta recruiting \u2014 label Jobs, archive after 14d --"
     },
     {
       "from_match": "@meta.com",
@@ -3165,7 +3285,7 @@
       "label": "Jobs",
       "archive_after_label": true,
       "confidence": 0.88,
-      "reasoning": "Meta recruiting email >=14 days unread — label Jobs and archive"
+      "reasoning": "Meta recruiting email >=14 days unread \u2014 label Jobs and archive"
     },
     {
       "from_match": "@meta.com",
@@ -3174,10 +3294,10 @@
       "label": "Jobs",
       "archive_after_label": false,
       "confidence": 0.85,
-      "reasoning": "Recent Meta recruiting email — label Jobs, keep in inbox"
+      "reasoning": "Recent Meta recruiting email \u2014 label Jobs, keep in inbox"
     },
     {
-      "_note": "-- LinkedIn InMail recruiter messages — label Jobs, archive after 14d --"
+      "_note": "-- LinkedIn InMail recruiter messages \u2014 label Jobs, archive after 14d --"
     },
     {
       "from_match": "inmail-hit-reply@linkedin.com",
@@ -3186,7 +3306,7 @@
       "label": "Jobs",
       "archive_after_label": true,
       "confidence": 0.88,
-      "reasoning": "LinkedIn recruiter InMail >=14 days unread — label Jobs and archive"
+      "reasoning": "LinkedIn recruiter InMail >=14 days unread \u2014 label Jobs and archive"
     },
     {
       "from_match": "inmail-hit-reply@linkedin.com",
@@ -3195,24 +3315,24 @@
       "label": "Jobs",
       "archive_after_label": false,
       "confidence": 0.85,
-      "reasoning": "Recent LinkedIn recruiter InMail — label Jobs, keep in inbox"
+      "reasoning": "Recent LinkedIn recruiter InMail \u2014 label Jobs, keep in inbox"
     },
     {
-      "_note": "-- Slack workspace notifications — archive after 30d --"
+      "_note": "-- Slack workspace notifications \u2014 archive after 30d --"
     },
     {
       "from_match": "@slack.com",
       "min_age_days": 30,
       "action": "archive",
       "confidence": 0.88,
-      "reasoning": "Slack workspace notification >=30 days unread — archive"
+      "reasoning": "Slack workspace notification >=30 days unread \u2014 archive"
     },
     {
       "from_match": "@slack.com",
       "max_age_days": 29,
       "action": "keep",
       "confidence": 0.82,
-      "reasoning": "Recent Slack workspace notification — keep"
+      "reasoning": "Recent Slack workspace notification \u2014 keep"
     },
     {
       "_note": "-- Walmart: split refunds/orders (Receipts) vs account security (keep) --"
@@ -3224,7 +3344,7 @@
       "label": "Receipts",
       "archive_after_label": true,
       "confidence": 0.9,
-      "reasoning": "Walmart refund — label Receipts and archive"
+      "reasoning": "Walmart refund \u2014 label Receipts and archive"
     },
     {
       "from_match": "@walmart.com",
@@ -3234,7 +3354,7 @@
       "label": "Receipts",
       "archive_after_label": true,
       "confidence": 0.88,
-      "reasoning": "Walmart order >=30 days unread — label Receipts and archive"
+      "reasoning": "Walmart order >=30 days unread \u2014 label Receipts and archive"
     },
     {
       "from_match": "@walmart.com",
@@ -3243,104 +3363,104 @@
       "label": "Receipts",
       "archive_after_label": false,
       "confidence": 0.85,
-      "reasoning": "Recent Walmart order — label Receipts, keep in inbox"
+      "reasoning": "Recent Walmart order \u2014 label Receipts, keep in inbox"
     },
     {
       "from_match": "@walmart.com",
       "subject_match": "password",
       "action": "keep",
       "confidence": 0.9,
-      "reasoning": "Walmart security alert — keep"
+      "reasoning": "Walmart security alert \u2014 keep"
     },
     {
       "from_match": "@walmart.com",
       "subject_match": "passkey",
       "action": "keep",
       "confidence": 0.9,
-      "reasoning": "Walmart security/passkey alert — keep"
+      "reasoning": "Walmart security/passkey alert \u2014 keep"
     },
     {
       "from_match": "@walmart.com",
       "subject_match": "sign in",
       "action": "keep",
       "confidence": 0.9,
-      "reasoning": "Walmart sign-in alert — keep"
+      "reasoning": "Walmart sign-in alert \u2014 keep"
     },
     {
       "from_match": "@walmart.com",
       "min_age_days": 14,
       "action": "archive",
       "confidence": 0.85,
-      "reasoning": "Walmart misc >=14 days unread — archive"
+      "reasoning": "Walmart misc >=14 days unread \u2014 archive"
     },
     {
       "from_match": "@walmart.com",
       "max_age_days": 13,
       "action": "keep",
       "confidence": 0.78,
-      "reasoning": "Recent Walmart email — keep"
+      "reasoning": "Recent Walmart email \u2014 keep"
     },
     {
-      "_note": "-- DMV vehicle registration — keep --"
+      "_note": "-- DMV vehicle registration \u2014 keep --"
     },
     {
       "from_match": "@notify.dmvonline.ca.gov",
       "action": "keep",
       "confidence": 0.92,
-      "reasoning": "DMV vehicle registration renewal — keep"
+      "reasoning": "DMV vehicle registration renewal \u2014 keep"
     },
     {
       "_note": "=== BATCH 011/022 LOW-CONF FIXES ==="
     },
     {
-      "_note": "-- SBI survey/marketing emails (research.sbsc subdomain) — delete --"
+      "_note": "-- SBI survey/marketing emails (research.sbsc subdomain) \u2014 delete --"
     },
     {
       "from_match": "@communications.sbi.co.in",
       "action": "delete",
       "confidence": 0.92,
-      "reasoning": "SBI marketing/survey email — delete"
+      "reasoning": "SBI marketing/survey email \u2014 delete"
     },
     {
       "from_match": "research.sbsc@",
       "action": "delete",
       "confidence": 0.92,
-      "reasoning": "SBI research survey email — delete"
+      "reasoning": "SBI research survey email \u2014 delete"
     },
     {
-      "_note": "-- Vegas.com terms/marketing — archive --"
+      "_note": "-- Vegas.com terms/marketing \u2014 archive --"
     },
     {
       "from_match": "@deals.vegas.com",
       "action": "archive",
       "confidence": 0.88,
-      "reasoning": "Vegas.com terms/marketing — archive"
+      "reasoning": "Vegas.com terms/marketing \u2014 archive"
     },
     {
-      "_note": "-- Dental office (yapi.me) — archive after 14 days --"
+      "_note": "-- Dental office (yapi.me) \u2014 archive after 14 days --"
     },
     {
       "from_match": "@yapi.me",
       "min_age_days": 14,
       "action": "archive",
       "confidence": 0.85,
-      "reasoning": "Dental office notice >=14 days unread — archive"
+      "reasoning": "Dental office notice >=14 days unread \u2014 archive"
     },
     {
       "from_match": "@yapi.me",
       "max_age_days": 13,
       "action": "keep",
       "confidence": 0.85,
-      "reasoning": "Recent dental office notice — keep"
+      "reasoning": "Recent dental office notice \u2014 keep"
     },
     {
-      "_note": "-- BAPS para sabha personal gmail senders — archive after 28 days --"
+      "_note": "-- BAPS para sabha personal gmail senders \u2014 archive after 28 days --"
     },
     {
-      "_note": "-- IETE awards/nominations (non-election gmail senders) — archive after 14 days --"
+      "_note": "-- IETE awards/nominations (non-election gmail senders) \u2014 archive after 14 days --"
     },
     {
-      "_note": "-- camsonline (India MF) — bump confidence, keep recent, archive after 14d --"
+      "_note": "-- camsonline (India MF) \u2014 bump confidence, keep recent, archive after 14d --"
     },
     {
       "from_match": "@camsonline.com",
@@ -3349,7 +3469,7 @@
       "label": "Investing",
       "archive_after_label": true,
       "confidence": 0.88,
-      "reasoning": "India MF statement via CAMS >=14 days unread — label Investing and archive"
+      "reasoning": "India MF statement via CAMS >=14 days unread \u2014 label Investing and archive"
     },
     {
       "from_match": "@camsonline.com",
@@ -3358,7 +3478,7 @@
       "label": "Investing",
       "archive_after_label": false,
       "confidence": 0.85,
-      "reasoning": "Recent India MF statement via CAMS — label Investing, keep in inbox"
+      "reasoning": "Recent India MF statement via CAMS \u2014 label Investing, keep in inbox"
     },
     {
       "_note": "-- Tata MF via CAMS donotreply (merger/corporate notices) --"
@@ -3370,7 +3490,7 @@
       "label": "Investing",
       "archive_after_label": true,
       "confidence": 0.88,
-      "reasoning": "India MF corporate notice >=14 days unread — label Investing and archive"
+      "reasoning": "India MF corporate notice >=14 days unread \u2014 label Investing and archive"
     },
     {
       "from_match": "donotreply@camsonline.com",
@@ -3379,7 +3499,7 @@
       "label": "Investing",
       "archive_after_label": false,
       "confidence": 0.85,
-      "reasoning": "Recent India MF corporate notice — label Investing, keep in inbox"
+      "reasoning": "Recent India MF corporate notice \u2014 label Investing, keep in inbox"
     },
     {
       "from_match": "@mfcentral.com",
@@ -3388,7 +3508,7 @@
       "label": "Investing",
       "archive_after_label": true,
       "confidence": 0.88,
-      "reasoning": "MF Central consolidated statement >=14 days unread — label Investing and archive"
+      "reasoning": "MF Central consolidated statement >=14 days unread \u2014 label Investing and archive"
     },
     {
       "from_match": "@mfcentral.com",
@@ -3397,10 +3517,10 @@
       "label": "Investing",
       "archive_after_label": false,
       "confidence": 0.85,
-      "reasoning": "Recent MF Central statement — label Investing, keep in inbox"
+      "reasoning": "Recent MF Central statement \u2014 label Investing, keep in inbox"
     },
     {
-      "_note": "-- SBI NRI Services — passport/visa/account notices, label Bank/Axis and archive after 14d --"
+      "_note": "-- SBI NRI Services \u2014 passport/visa/account notices, label Bank/Axis and archive after 14d --"
     },
     {
       "from_match": "SBI_NRI_SERVICES@",
@@ -3409,14 +3529,14 @@
       "label": "Bank/Axis",
       "archive_after_label": true,
       "confidence": 0.92,
-      "reasoning": "SBI NRI Services notice >=14 days unread — label Bank/Axis and archive"
+      "reasoning": "SBI NRI Services notice >=14 days unread \u2014 label Bank/Axis and archive"
     },
     {
       "from_match": "SBI_NRI_SERVICES@",
       "max_age_days": 13,
       "action": "keep",
       "confidence": 0.92,
-      "reasoning": "Recent SBI NRI Services notice — keep"
+      "reasoning": "Recent SBI NRI Services notice \u2014 keep"
     },
     {
       "_note": "-- SBI bank domain (non-survey) --"
@@ -3428,7 +3548,7 @@
       "label": "Bank/Axis",
       "archive_after_label": true,
       "confidence": 0.88,
-      "reasoning": "SBI bank notice >=14 days unread — label and archive"
+      "reasoning": "SBI bank notice >=14 days unread \u2014 label and archive"
     },
     {
       "from_match": "@sbi.bank.in",
@@ -3437,13 +3557,13 @@
       "label": "Bank/Axis",
       "archive_after_label": false,
       "confidence": 0.85,
-      "reasoning": "Recent SBI bank notice — label, keep in inbox"
+      "reasoning": "Recent SBI bank notice \u2014 label, keep in inbox"
     },
     {
       "_note": "=== BATCH 019 DERIVED RULES ==="
     },
     {
-      "_note": "-- USPS Informed Delivery digest — label Shipping (separate from auto-reply tracking) --"
+      "_note": "-- USPS Informed Delivery digest \u2014 label Shipping (separate from auto-reply tracking) --"
     },
     {
       "from_match": "@email.informeddelivery.usps.com",
@@ -3452,7 +3572,7 @@
       "label": "Shipping",
       "archive_after_label": true,
       "confidence": 0.88,
-      "reasoning": "USPS Informed Delivery digest >=7 days unread — label Shipping and archive"
+      "reasoning": "USPS Informed Delivery digest >=7 days unread \u2014 label Shipping and archive"
     },
     {
       "from_match": "@email.informeddelivery.usps.com",
@@ -3461,10 +3581,10 @@
       "label": "Shipping",
       "archive_after_label": false,
       "confidence": 0.85,
-      "reasoning": "Recent USPS Informed Delivery digest — label Shipping, keep in inbox"
+      "reasoning": "Recent USPS Informed Delivery digest \u2014 label Shipping, keep in inbox"
     },
     {
-      "_note": "-- FedEx delivery tracking — label Shipping (already archived, now labeled) --"
+      "_note": "-- FedEx delivery tracking \u2014 label Shipping (already archived, now labeled) --"
     },
     {
       "from_match": "@fedex.com",
@@ -3473,7 +3593,7 @@
       "label": "Shipping",
       "archive_after_label": true,
       "confidence": 0.85,
-      "reasoning": "FedEx tracking >=7 days unread — label Shipping and archive"
+      "reasoning": "FedEx tracking >=7 days unread \u2014 label Shipping and archive"
     },
     {
       "from_match": "@fedex.com",
@@ -3482,10 +3602,10 @@
       "label": "Shipping",
       "archive_after_label": false,
       "confidence": 0.85,
-      "reasoning": "Recent FedEx delivery tracking — label Shipping, keep in inbox"
+      "reasoning": "Recent FedEx delivery tracking \u2014 label Shipping, keep in inbox"
     },
     {
-      "_note": "-- Vanguard statements (transactional subdomain) — label Investing --"
+      "_note": "-- Vanguard statements (transactional subdomain) \u2014 label Investing --"
     },
     {
       "from_match": "@transactional.vanguard.com",
@@ -3494,7 +3614,7 @@
       "label": "Investing",
       "archive_after_label": true,
       "confidence": 0.9,
-      "reasoning": "Vanguard statement >=7 days unread — label Investing and archive"
+      "reasoning": "Vanguard statement >=7 days unread \u2014 label Investing and archive"
     },
     {
       "from_match": "@transactional.vanguard.com",
@@ -3503,10 +3623,10 @@
       "label": "Investing",
       "archive_after_label": false,
       "confidence": 0.85,
-      "reasoning": "Recent Vanguard statement — label Investing, keep in inbox"
+      "reasoning": "Recent Vanguard statement \u2014 label Investing, keep in inbox"
     },
     {
-      "_note": "-- CoinTracker portfolio updates — label Finance/Crypto --"
+      "_note": "-- CoinTracker portfolio updates \u2014 label Finance/Crypto --"
     },
     {
       "from_match": "newsletter@mail.coinbase.com",
@@ -3515,7 +3635,7 @@
       "label": "Finance/Crypto",
       "archive_after_label": true,
       "confidence": 0.88,
-      "reasoning": "Coinbase newsletter >=7 days unread — label Finance/Crypto and archive"
+      "reasoning": "Coinbase newsletter >=7 days unread \u2014 label Finance/Crypto and archive"
     },
     {
       "from_match": "@mail.cointracker.io",
@@ -3524,7 +3644,7 @@
       "label": "Finance/Crypto",
       "archive_after_label": true,
       "confidence": 0.88,
-      "reasoning": "CoinTracker portfolio update >=7 days unread — label Finance/Crypto and archive"
+      "reasoning": "CoinTracker portfolio update >=7 days unread \u2014 label Finance/Crypto and archive"
     },
     {
       "from_match": "@mail.cointracker.io",
@@ -3533,10 +3653,10 @@
       "label": "Finance/Crypto",
       "archive_after_label": false,
       "confidence": 0.8,
-      "reasoning": "Recent CoinTracker update — label Finance/Crypto, keep in inbox"
+      "reasoning": "Recent CoinTracker update \u2014 label Finance/Crypto, keep in inbox"
     },
     {
-      "_note": "-- Axis Bank (alerts + statements subdomains) — label Bank/Axis --"
+      "_note": "-- Axis Bank (alerts + statements subdomains) \u2014 label Bank/Axis --"
     },
     {
       "from_match": "alerts@axisbank.com",
@@ -3545,7 +3665,7 @@
       "label": "Bank/Axis",
       "archive_after_label": true,
       "confidence": 0.9,
-      "reasoning": "Axis Bank alert >=7 days unread — label Bank/Axis and archive"
+      "reasoning": "Axis Bank alert >=7 days unread \u2014 label Bank/Axis and archive"
     },
     {
       "from_match": "alerts@axisbank.com",
@@ -3554,7 +3674,7 @@
       "label": "Bank/Axis",
       "archive_after_label": false,
       "confidence": 0.85,
-      "reasoning": "Recent Axis Bank alert — label Bank/Axis, keep in inbox"
+      "reasoning": "Recent Axis Bank alert \u2014 label Bank/Axis, keep in inbox"
     },
     {
       "from_match": "statements@axisbank.com",
@@ -3563,7 +3683,7 @@
       "label": "Bank/Axis",
       "archive_after_label": true,
       "confidence": 0.9,
-      "reasoning": "Axis Bank statement >=14 days unread — label Bank/Axis and archive"
+      "reasoning": "Axis Bank statement >=14 days unread \u2014 label Bank/Axis and archive"
     },
     {
       "from_match": "statements@axisbank.com",
@@ -3572,7 +3692,7 @@
       "label": "Bank/Axis",
       "archive_after_label": false,
       "confidence": 0.85,
-      "reasoning": "Recent Axis Bank statement — label Bank/Axis, keep in inbox"
+      "reasoning": "Recent Axis Bank statement \u2014 label Bank/Axis, keep in inbox"
     },
     {
       "from_match": "@digital.axisbankmail.com",
@@ -3581,7 +3701,7 @@
       "label": "Bank/Axis",
       "archive_after_label": true,
       "confidence": 0.88,
-      "reasoning": "Axis Bank info notice >=7 days unread — label Bank/Axis and archive"
+      "reasoning": "Axis Bank info notice >=7 days unread \u2014 label Bank/Axis and archive"
     },
     {
       "from_match": "@digital.axisbankmail.com",
@@ -3590,7 +3710,7 @@
       "label": "Bank/Axis",
       "archive_after_label": false,
       "confidence": 0.82,
-      "reasoning": "Recent Axis Bank info notice — label Bank/Axis, keep in inbox"
+      "reasoning": "Recent Axis Bank info notice \u2014 label Bank/Axis, keep in inbox"
     },
     {
       "_note": "-- BofA mortgage statements --"
@@ -3602,7 +3722,7 @@
       "label": "Bank/BofA",
       "archive_after_label": true,
       "confidence": 0.9,
-      "reasoning": "BofA mortgage statement >=14 days unread — label Bank/BofA and archive"
+      "reasoning": "BofA mortgage statement >=14 days unread \u2014 label Bank/BofA and archive"
     },
     {
       "from_match": "@ealerts.bankofamerica.com",
@@ -3611,10 +3731,10 @@
       "label": "Bank/BofA",
       "archive_after_label": false,
       "confidence": 0.85,
-      "reasoning": "Recent BofA mortgage statement — label Bank/BofA, keep in inbox"
+      "reasoning": "Recent BofA mortgage statement \u2014 label Bank/BofA, keep in inbox"
     },
     {
-      "_note": "-- Monarch Money alerts — label Finance --"
+      "_note": "-- Monarch Money alerts \u2014 label Finance --"
     },
     {
       "from_match": "@email.monarchmoney.com",
@@ -3623,7 +3743,7 @@
       "label": "Finance",
       "archive_after_label": true,
       "confidence": 0.88,
-      "reasoning": "Monarch Money alert >=7 days unread — label Finance and archive"
+      "reasoning": "Monarch Money alert >=7 days unread \u2014 label Finance and archive"
     },
     {
       "from_match": "@email.monarchmoney.com",
@@ -3632,10 +3752,10 @@
       "label": "Finance",
       "archive_after_label": false,
       "confidence": 0.85,
-      "reasoning": "Recent Monarch Money alert — label Finance, keep in inbox"
+      "reasoning": "Recent Monarch Money alert \u2014 label Finance, keep in inbox"
     },
     {
-      "_note": "-- Experian ID Works monthly summaries — label Finance --"
+      "_note": "-- Experian ID Works monthly summaries \u2014 label Finance --"
     },
     {
       "from_match": "@mail.experianidworks.com",
@@ -3644,7 +3764,7 @@
       "label": "Finance",
       "archive_after_label": true,
       "confidence": 0.85,
-      "reasoning": "Experian ID Works summary >=7 days unread — label Finance and archive"
+      "reasoning": "Experian ID Works summary >=7 days unread \u2014 label Finance and archive"
     },
     {
       "from_match": "@mail.experianidworks.com",
@@ -3653,10 +3773,10 @@
       "label": "Finance",
       "archive_after_label": false,
       "confidence": 0.82,
-      "reasoning": "Recent Experian ID Works summary — label Finance, keep in inbox"
+      "reasoning": "Recent Experian ID Works summary \u2014 label Finance, keep in inbox"
     },
     {
-      "_note": "-- India mutual fund disclosures (CAMS, KFin, DSP, Tata, Baroda BNP) — label Investing --"
+      "_note": "-- India mutual fund disclosures (CAMS, KFin, DSP, Tata, Baroda BNP) \u2014 label Investing --"
     },
     {
       "from_match": "@camsonline.com",
@@ -3665,7 +3785,7 @@
       "label": "Investing",
       "archive_after_label": true,
       "confidence": 0.85,
-      "reasoning": "India MF portfolio statement >=14 days unread — label Investing and archive"
+      "reasoning": "India MF portfolio statement >=14 days unread \u2014 label Investing and archive"
     },
     {
       "from_match": "@kfintech.com",
@@ -3674,7 +3794,7 @@
       "label": "Investing",
       "archive_after_label": true,
       "confidence": 0.85,
-      "reasoning": "India MF portfolio statement >=14 days unread — label Investing and archive"
+      "reasoning": "India MF portfolio statement >=14 days unread \u2014 label Investing and archive"
     },
     {
       "from_match": "@kfintech.com",
@@ -3683,7 +3803,7 @@
       "label": "Investing",
       "archive_after_label": false,
       "confidence": 0.82,
-      "reasoning": "Recent India MF statement — label Investing, keep in inbox"
+      "reasoning": "Recent India MF statement \u2014 label Investing, keep in inbox"
     },
     {
       "from_match": "@tatamf.in",
@@ -3692,7 +3812,7 @@
       "label": "Investing",
       "archive_after_label": true,
       "confidence": 0.85,
-      "reasoning": "Tata MF portfolio notice >=14 days unread — label Investing and archive"
+      "reasoning": "Tata MF portfolio notice >=14 days unread \u2014 label Investing and archive"
     },
     {
       "from_match": "@tatamf.in",
@@ -3701,7 +3821,7 @@
       "label": "Investing",
       "archive_after_label": false,
       "confidence": 0.82,
-      "reasoning": "Recent Tata MF notice — label Investing, keep in inbox"
+      "reasoning": "Recent Tata MF notice \u2014 label Investing, keep in inbox"
     },
     {
       "from_match": "@seshaasai.in",
@@ -3710,7 +3830,7 @@
       "label": "Investing",
       "archive_after_label": true,
       "confidence": 0.85,
-      "reasoning": "India consolidated MF statement >=14 days unread — label Investing and archive"
+      "reasoning": "India consolidated MF statement >=14 days unread \u2014 label Investing and archive"
     },
     {
       "from_match": "@seshaasai.in",
@@ -3719,10 +3839,10 @@
       "label": "Investing",
       "archive_after_label": false,
       "confidence": 0.82,
-      "reasoning": "Recent India consolidated MF statement — label Investing, keep in inbox"
+      "reasoning": "Recent India consolidated MF statement \u2014 label Investing, keep in inbox"
     },
     {
-      "_note": "-- SBI account statement (India) — label Bank/Axis (India bank bucket) --"
+      "_note": "-- SBI account statement (India) \u2014 label Bank/Axis (India bank bucket) --"
     },
     {
       "from_match": "@alerts.sbi.co.in",
@@ -3731,7 +3851,7 @@
       "label": "Bank/Axis",
       "archive_after_label": true,
       "confidence": 0.85,
-      "reasoning": "SBI account statement >=14 days unread — label Bank/Axis and archive"
+      "reasoning": "SBI account statement >=14 days unread \u2014 label Bank/Axis and archive"
     },
     {
       "from_match": "@alerts.sbi.co.in",
@@ -3740,7 +3860,7 @@
       "label": "Bank/Axis",
       "archive_after_label": false,
       "confidence": 0.82,
-      "reasoning": "Recent SBI statement — label Bank/Axis, keep in inbox"
+      "reasoning": "Recent SBI statement \u2014 label Bank/Axis, keep in inbox"
     },
     {
       "_note": "=== IETE ELECTION CAMPAIGN (delete on subject match) ==="
@@ -3749,19 +3869,19 @@
       "subject_match": "iete gc election",
       "action": "delete",
       "confidence": 0.92,
-      "reasoning": "IETE election campaign email — delete"
+      "reasoning": "IETE election campaign email \u2014 delete"
     },
     {
       "subject_match": "vote for prof",
       "action": "delete",
       "confidence": 0.95,
-      "reasoning": "IETE election vote solicitation — delete"
+      "reasoning": "IETE election vote solicitation \u2014 delete"
     },
     {
       "subject_match": "iete governing council election",
       "action": "delete",
       "confidence": 0.92,
-      "reasoning": "IETE election campaign email — delete"
+      "reasoning": "IETE election campaign email \u2014 delete"
     }
   ]
 }

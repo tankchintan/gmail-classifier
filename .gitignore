@@ -28,6 +28,7 @@ __pycache__/
 data/*.csv
 data/*.json
 logs/*.jsonl
+logs/*.log
 audit-reports/*.md
 
 # But keep directories
