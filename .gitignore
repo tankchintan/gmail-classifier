@@ -1,6 +1,18 @@
 # OAuth credentials and tokens (NEVER commit these!)
 credentials.json
 token.pickle
+token-modify.pickle
+
+# Private classification rules (personal sender addresses — keep gitignored)
+scripts/classification_rules.personal.json
+# Legacy monolithic rules file (replaced by base+personal split)
+scripts/classification_rules.json
+
+# Personal notes
+linkedin-article-raw-notes.md
+
+# launchd plist (machine-specific paths, regenerate per machine)
+com.ctank.gmail-classifier.plist
 
 # Python
 venv/

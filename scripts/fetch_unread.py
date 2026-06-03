@@ -24,9 +24,10 @@ from tqdm import tqdm
 SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
 
 PROJECT_ROOT = Path(__file__).parent.parent
-CREDENTIALS_FILE = PROJECT_ROOT / 'credentials.json'
-TOKEN_FILE = PROJECT_ROOT / 'token.pickle'
-DATA_DIR = PROJECT_ROOT / 'data'
+CANONICAL_ROOT = Path(__file__).parent.parent
+CREDENTIALS_FILE = CANONICAL_ROOT / 'credentials.json'
+TOKEN_FILE = CANONICAL_ROOT / 'token.pickle'
+DATA_DIR = CANONICAL_ROOT / 'data'
 
 def authenticate():
     """Authenticate with Gmail API using OAuth."""
@@ -107,14 +108,21 @@ def fetch_unread_emails(
     service,
     limit: int = 500,
     offset: int = 0,
-    batch_size: int = 100
+    batch_size: int = 100,
+    before: Optional[str] = None,
+    after: Optional[str] = None,
 ) -> List[Dict]:
     """
     Fetch unread emails from Primary inbox.
+    `before` / `after` are YYYY/MM/DD strings (Gmail's native format).
     Returns list of email metadata dicts.
     """
-    # Query for unread Primary inbox emails
-    query = 'label:inbox is:unread category:primary'
+    query_parts = ['label:inbox', 'is:unread', 'category:primary']
+    if before:
+        query_parts.append(f'before:{before}')
+    if after:
+        query_parts.append(f'after:{after}')
+    query = ' '.join(query_parts)
 
     print(f"Fetching unread emails (limit={limit}, offset={offset})...")
 
@@ -246,13 +254,21 @@ def main():
     parser.add_argument('--batch', default='001', help='Batch number (e.g., 001)')
     parser.add_argument('--limit', type=int, default=500, help='Max emails to fetch')
     parser.add_argument('--offset', type=int, default=0, help='Skip first N emails')
+    parser.add_argument('--before', help='Only emails before this date (YYYY/MM/DD, Gmail format)')
+    parser.add_argument('--after', help='Only emails after this date (YYYY/MM/DD, Gmail format)')
     args = parser.parse_args()
 
     # Authenticate
     service = authenticate()
 
     # Fetch emails
-    emails = fetch_unread_emails(service, limit=args.limit, offset=args.offset)
+    emails = fetch_unread_emails(
+        service,
+        limit=args.limit,
+        offset=args.offset,
+        before=args.before,
+        after=args.after,
+    )
 
     if not emails:
         print("No emails found")

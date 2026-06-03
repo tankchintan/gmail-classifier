@@ -1,246 +1,190 @@
-# Gmail Classifier - CU Edition
+# Gmail Classifier
 
-Automated Gmail classification, cleanup, and auditing using Claude Unleashed.
+Rule-based Gmail inbox cleanup with Claude Haiku for uncertain emails, daily automation, and a local dashboard. Built to clear a personal inbox with 5,000+ unread emails — now runs daily via launchd.
 
-## Project Goals
-- **Classify** emails using learned patterns
-- **Automate** archiving, deleting, labeling actions
-- **Audit** every action for quality review
-- **Clean up** 5K+ unread Primary inbox emails
+**No agents, no cloud infra, no subscription.** Runs entirely locally. Core features are free; AI features cost ~$0.04/run.
 
-## Architecture
+## What it does
 
-### CU Agents
-- **gmail-fetcher**: Read-only, fetches email metadata
-- **gmail-classifier**: Analyzes patterns, suggests actions with confidence scores
-- **gmail-actor**: Executes approved actions (≥81% confidence), logs everything
-- **gmail-auditor**: Reviews action logs, learns from patterns
+- **Fetches** unread email metadata from Gmail API in batches
+- **Classifies** each email using 550+ sender rules with confidence scores
+- **Executes** safe actions automatically (archive, label) at ≥ 0.75 confidence
+- **Holds deletes** for manual review — never auto-deletes without explicit approval
+- **Extracts** structured data from newsletters (school calendar events) and recruiter emails (job leads) via Claude Haiku
+- **Tracks everything** in a local dashboard at `http://localhost:5001`
 
-### Workflows
-- **gmail-initial-batch**: Day 0 processing (500 emails at a time, manual)
-- **gmail-daily-process**: Ongoing daily processing
+## How it works
 
-## Setup
+```
+fetch_unread.py  →  classify.py  →  execute_actions.py
+                         ↓
+                   Claude Haiku           (optional, ~$0.04/run)
+                   uncertain emails only
+                         ↓
+         extract_school_events.py / extract_job_leads.py
+                         ↓
+                   dashboard/dashboard.py
+```
 
-### 1. Google Cloud OAuth Setup
+**Two-pass execution model:**
+- Pass 1 (automatic): archive + label at confidence ≥ 0.75
+- Pass 2 (manual only): deletes after you review and explicitly approve
+
+## Quick start
+
+### 1. Google Cloud OAuth setup
 
 1. Go to [Google Cloud Console](https://console.cloud.google.com/)
-2. Create a new project: `gmail-classifier`
-3. Enable Gmail API
-4. Create OAuth 2.0 credentials:
-   - Application type: **Desktop app**
-   - Name: `gmail-classifier-local`
-5. Download `credentials.json` → save to this directory
-6. First run will open browser for OAuth consent
+2. Create a project, enable Gmail API
+3. Create OAuth 2.0 credentials → Desktop app → download as `credentials.json` in this directory
+4. Scopes needed: `gmail.readonly` (fetch) + `gmail.modify` (execute actions)
 
-**Scopes requested**: `gmail.metadata` (most restrictive - no email bodies)
-
-### 2. Python Environment
+### 2. Python environment
 
 ```bash
-cd ~/projects/gmail-classifier
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 3. Verify CU Daemon
+### 3. First auth + fetch
 
 ```bash
-cu daemon status --json
-# If not running:
-cu daemon start
+# Opens browser for OAuth, then fetches your first 50 emails
+venv/bin/python scripts/fetch_unread.py --batch 001 --limit 50
 ```
 
-### 4. List Available Agents
+### 4. Classify
 
 ```bash
-cd ~/projects/gmail-classifier
-cu agents ls --json
-# Should see: gmail-fetcher, gmail-classifier, gmail-actor, gmail-auditor
+venv/bin/python scripts/classify.py \
+  --input data/batch-001.csv \
+  --output data/batch-001-classified.json
 ```
 
-## Day 0: Initial 5K Email Processing
-
-### Phase 1: Fetch All (Conservative)
+### 5. Execute safe actions (no deletes)
 
 ```bash
-# Single session, output CSV only (no classification yet)
-cu run \
-  --agent gmail-fetcher \
-  --repo ~/projects/gmail-classifier \
-  --prompt "Fetch metadata for first 500 unread Primary inbox emails. Output CSV to data/batch-001.csv"
-
-# Check progress
-cu sessions ls
-cu tail <session-short-name>
+venv/bin/python scripts/execute_actions.py \
+  --input data/batch-001-classified.json \
+  --confidence-threshold 0.75
 ```
 
-**Repeat in batches**: 001 (0-500), 002 (500-1000), etc.
-
-### Phase 2: Manual Classification Review
+### 6. Dashboard
 
 ```bash
-# Classify one batch to establish patterns
-cu run \
-  --agent gmail-classifier \
-  --repo ~/projects/gmail-classifier \
-  --prompt "Classify emails in data/batch-001.csv. Output actions with confidence scores to data/batch-001-classified.json"
-
-# Review the output
-cat data/batch-001-classified.json | jq '.[] | select(.confidence >= 0.81)'
+venv/bin/python dashboard/dashboard.py
+# → http://localhost:5001
 ```
 
-**Human review step**: Check if suggested actions make sense before any execution.
+## Daily automation
 
-### Phase 3: Execute High-Confidence Actions
+`daily_run.sh` runs the full pipeline: fetch new emails → classify → re-classify all batches (age gates fire on older emails) → execute safe actions → extract AI insights.
 
 ```bash
-# Only run after manual review!
-cu run \
-  --agent gmail-actor \
-  --repo ~/projects/gmail-classifier \
-  --prompt "Execute actions from data/batch-001-classified.json where confidence >= 0.81. Log every action to logs/actions-$(date +%Y%m%d-%H%M%S).jsonl"
-
-# Check what happened
-cu sessions get <session-id> --json
-cat logs/actions-*.jsonl | tail -20
+./daily_run.sh            # rule-based only
+./daily_run.sh --with-ai  # also send uncertain emails to Claude Haiku
 ```
 
-## Ongoing: Daily Workflow
+Schedule on macOS via launchd — see `com.YOURNAME.gmail-classifier.plist.example` for a template.
 
-Once confident in the system:
+## Classification rules
 
+Rules live in two files:
+
+| File | Committed | Purpose |
+|---|---|---|
+| `scripts/classification_rules.base.json` | ✅ | 550+ domain/pattern rules — the shared core |
+| `scripts/classification_rules.personal.json` | ❌ gitignored | Your personal sender overrides |
+
+Copy the example to get started:
 ```bash
-# Manual trigger (not scheduled yet)
-cu workflow run gmail-daily-process \
-  --repo ~/projects/gmail-classifier \
-  --input '{"confidence_threshold": 0.81}'
-
-# Watch progress
-cu sessions ls
-cu tail <workflow-session-name>
-
-# Review audit after completion
-cu sessions post-mortem <session-id>
+cp scripts/classification_rules.personal.example.json \
+   scripts/classification_rules.personal.json
 ```
 
-## Auditability
+Personal rules are checked first (first-match-wins), then base rules. The base ruleset covers newsletters, receipts, recruiters, notifications, travel, finance, shopping, and more.
 
-Every action is logged in multiple places:
+### Rule format
 
-### 1. Action Logs (structured)
-```bash
-# All actions taken by gmail-actor
-cat logs/actions-*.jsonl | jq '.'
-
-# Filter by action type
-cat logs/actions-*.jsonl | jq 'select(.action == "archive")'
-
-# Actions in last 7 days
-find logs -name "actions-*.jsonl" -mtime -7 -exec cat {} \;
+```json
+{
+  "from_match": "@github.com",
+  "action": "label",
+  "label": "Dev",
+  "reasoning": "GitHub notifications"
+}
 ```
 
-### 2. CU Session Logs
-```bash
-# All gmail-actor sessions
-cu sessions ls --json | jq '.[] | select(.agent == "gmail-actor")'
+Optional fields: `subject_match`, `min_age_days`, `max_age_days`, `label`, `archive_after_label`.
 
-# Post-mortem for specific session
-cu sessions post-mortem <session-id> > audit-reports/session-<id>.md
+Actions: `keep` · `archive` · `label` · `delete`
+
+### Age gates
+
+Rules can fire differently based on email age:
+
+```json
+[
+  { "from_match": "@newsletter.com", "action": "keep", "max_age_days": 7 },
+  { "from_match": "@newsletter.com", "action": "archive", "min_age_days": 7 }
+]
 ```
 
-### 3. Periodic Audit Review
-```bash
-cu run \
-  --agent gmail-auditor \
-  --repo ~/projects/gmail-classifier \
-  --prompt "Review all actions from the last 7 days in logs/. Generate markdown report: were actions good/bad/ugly? Suggest rule improvements."
-```
+Re-classifying all batches daily means emails automatically age into archive as they get older — no manual work needed.
 
-## Tuning the System
+## AI features (optional)
 
-### Adjust Confidence Threshold
+Set `ANTHROPIC_API_KEY` in your environment, or configure `apiKeyHelper` in `~/.claude/settings.json`.
 
-Edit `.claude-unleashed/workflows/gmail-daily-process.yaml`:
-```yaml
-high-confidence-actions:
-  prompt: |
-    Execute ONLY actions with confidence >= 0.85  # Changed from 0.81
-```
+| Feature | Flag/Script | What it does |
+|---|---|---|
+| Uncertain email review | `--with-ai` on `classify.py` | Sends emails < 0.75 confidence to Claude Haiku |
+| School calendar | `extract_school_events.py` | Extracts upcoming events from school newsletters |
+| Job leads pipeline | `extract_job_leads.py` | Extracts role/company/comp from recruiter emails |
 
-### Add New Classification Rules
+Both extractors are idempotent — already-processed message IDs are skipped.
 
-The `gmail-classifier` agent learns from:
-- Audit feedback (gmail-auditor reports)
-- Manual corrections (when you override low-confidence decisions)
-- Patterns you explicitly add to `scripts/classification_rules.json`
+## Dashboard
 
-## Troubleshooting
+**Daily Run tab**: actions this run, inbox aging forecast, labels applied, AI insights (school calendar + job pipeline).
 
-### OAuth Token Expired
-```bash
-rm token.pickle
-python scripts/fetch_unread.py  # Re-authenticates
-```
+**All-time Stats tab**: action breakdown, confidence distribution, top rules, top senders, timeline chart.
 
-### CU Daemon Issues
-```bash
-cu daemon status --json
-cu daemon restart
-cu plugins doctor --json  # Check MCP plugin health
-```
+## Safety
 
-### Session Stuck
-```bash
-cu sessions ls  # Find stuck session
-cu sessions unstick <session-id>
-# Or kill and restart:
-cu sessions kill <session-id>
-```
+- Deletes **never** auto-execute — require explicit `--only-deletes` flag
+- Every action logged to `logs/actions-TIMESTAMP.jsonl` with full metadata
+- Execution is idempotent — re-running any batch skips already-executed emails
+- Confidence thresholds are configurable; default is conservative (0.75 safe actions, 0.97 deletes)
 
-## File Structure
+## File structure
 
 ```
 gmail-classifier/
-├── README.md                          # This file
-├── requirements.txt                   # Python dependencies
-├── credentials.json                   # Google OAuth (gitignored)
-├── token.pickle                       # OAuth token cache (gitignored)
-├── .claude-unleashed/
-│   ├── agents/
-│   │   ├── gmail-fetcher.yaml
-│   │   ├── gmail-classifier.yaml
-│   │   ├── gmail-actor.yaml
-│   │   └── gmail-auditor.yaml
-│   └── workflows/
-│       ├── gmail-initial-batch.yaml
-│       └── gmail-daily-process.yaml
 ├── scripts/
-│   ├── fetch_unread.py               # Core Gmail API logic
-│   ├── classify.py                    # Classification engine
-│   ├── execute_actions.py             # Action executor with logging
-│   └── classification_rules.json      # Explicit rules
-├── data/                              # CSV outputs, classifications
-│   ├── batch-001.csv
-│   ├── batch-001-classified.json
-│   └── ...
-├── logs/                              # Action logs (JSONL)
-│   ├── actions-20260529-090000.jsonl
-│   └── ...
-└── audit-reports/                     # Generated audit reports
-    └── session-<id>.md
+│   ├── fetch_unread.py                       # Gmail API fetcher
+│   ├── classify.py                           # Rule engine + optional AI pass
+│   ├── execute_actions.py                    # Executor with audit log
+│   ├── extract_school_events.py              # School calendar extraction
+│   ├── extract_job_leads.py                  # Job leads extraction
+│   ├── classification_rules.base.json        # Committed: shared rules
+│   ├── classification_rules.personal.json    # Gitignored: your rules
+│   └── classification_rules.personal.example.json
+├── dashboard/
+│   ├── dashboard.py                          # Local HTTP server
+│   └── templates/dashboard.html
+├── daily_run.sh                              # Full pipeline script
+├── requirements.txt
+└── .gitignore
 ```
 
-## Next Steps
+## Requirements
 
-1. ✅ Complete Google Cloud OAuth setup
-2. ✅ Install Python dependencies
-3. ✅ Fetch first batch of 500 emails
-4. ✅ Manually review classifications
-5. ✅ Execute high-confidence actions (≥81%)
-6. ✅ Run auditor to review quality
-7. 🔄 Iterate on classification rules
-8. 🔄 Gradually increase batch size
-9. 🔄 Lower confidence threshold as system improves
-10. 🔄 Eventually add scheduling
+- Python 3.10+
+- Google Cloud project with Gmail API enabled
+- `anthropic` Python package + API key (only for AI features)
+
+## License
+
+MIT

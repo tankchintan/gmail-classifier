@@ -1,0 +1,32 @@
+{
+  "_doc": "Personal sender rules — copy this to classification_rules.personal.json and add your own. These are checked BEFORE base rules (first-match-wins). Gitignored so your contacts stay private.",
+  "sender_rules": [
+    {
+      "_note": "-- Whitelist: people you know personally — never auto-action --",
+      "from_match": "familymember@gmail.com",
+      "action": "keep",
+      "reasoning": "Family — never auto-action"
+    },
+    {
+      "_note": "-- School: your child's school sending from a personal gmail --",
+      "from_match": "yourchildsschool@gmail.com",
+      "action": "label",
+      "label": "School",
+      "min_age_days": 14,
+      "reasoning": "School notice older than 14 days — label and archive"
+    },
+    {
+      "_note": "-- Same school, recent emails: keep in inbox --",
+      "from_match": "yourchildsschool@gmail.com",
+      "action": "keep",
+      "label": "School",
+      "reasoning": "Recent school notice — keep in inbox"
+    },
+    {
+      "_note": "-- Community / club contacts --",
+      "from_match": "cluborganizer@gmail.com",
+      "action": "keep",
+      "reasoning": "Community contact — keep recent"
+    }
+  ]
+}

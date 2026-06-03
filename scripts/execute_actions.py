@@ -24,9 +24,12 @@ from tqdm import tqdm
 SCOPES = ['https://www.googleapis.com/auth/gmail.modify']
 
 PROJECT_ROOT = Path(__file__).parent.parent
-CREDENTIALS_FILE = PROJECT_ROOT / 'credentials.json'
-TOKEN_FILE = PROJECT_ROOT / 'token.pickle'
-LOGS_DIR = PROJECT_ROOT / 'logs'
+CANONICAL_ROOT = Path(__file__).parent.parent
+CREDENTIALS_FILE = CANONICAL_ROOT / 'credentials.json'
+# Use the gmail.modify token (shared with create_label.py), NOT the read-only
+# fetcher token. Reusing the read-only token would fail and clobber it.
+TOKEN_FILE = CANONICAL_ROOT / 'token-modify.pickle'
+LOGS_DIR = CANONICAL_ROOT / 'logs'
 
 def authenticate():
     """Authenticate with Gmail API using OAuth."""
@@ -63,19 +66,46 @@ def authenticate():
 
     return build('gmail', 'v1', credentials=creds)
 
+def already_executed_ids() -> set:
+    """message_ids already SUCCESSFULLY executed per the audit logs.
+    Used to make re-runs idempotent — never re-act on (or re-log) a message
+    that's already been handled, even across runs with different thresholds."""
+    import glob
+    done = set()
+    for path in glob.glob(str(LOGS_DIR / 'actions-*.jsonl')):
+        try:
+            with open(path, encoding='utf-8') as fh:
+                for line in fh:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        entry = json.loads(line)
+                    except ValueError:
+                        continue
+                    # Only successful, real (non-skipped) actions count as "done"
+                    if entry.get('status') == 'success' and entry.get('message_id'):
+                        done.add(entry['message_id'])
+        except OSError:
+            pass
+    return done
+
+_SYSTEM_LABELS = {
+    'CATEGORY_PROMOTIONS', 'CATEGORY_UPDATES', 'CATEGORY_FORUMS',
+    'CATEGORY_SOCIAL', 'CATEGORY_PERSONAL', 'INBOX', 'SPAM', 'TRASH',
+    'UNREAD', 'STARRED', 'IMPORTANT', 'SENT', 'DRAFT',
+}
+
 def get_label_id(service, label_name: str) -> str:
-    """Get or create a label by name."""
+    """Get or create a label by name. System labels (CATEGORY_*) return their id directly."""
+    if label_name.upper() in _SYSTEM_LABELS:
+        return label_name.upper()
     try:
-        # List existing labels
         results = service.users().labels().list(userId='me').execute()
         labels = results.get('labels', [])
-
-        # Check if label exists
         for label in labels:
             if label['name'].lower() == label_name.lower():
                 return label['id']
-
-        # Create new label if not exists
         label_object = {
             'name': label_name,
             'labelListVisibility': 'labelShow',
@@ -84,12 +114,11 @@ def get_label_id(service, label_name: str) -> str:
         created = service.users().labels().create(userId='me', body=label_object).execute()
         print(f"Created new label: {label_name}")
         return created['id']
-
     except HttpError as e:
         print(f"Error getting/creating label {label_name}: {e}")
         return None
 
-def execute_action(service, action: Dict) -> Dict:
+def execute_action(service, action: Dict, dry_run: bool = False) -> Dict:
     """
     Execute a single action on an email.
 
@@ -111,6 +140,21 @@ def execute_action(service, action: Dict) -> Dict:
         'reasoning': reasoning,
         'status': 'pending'
     }
+
+    if dry_run:
+        label = action.get('label')
+        archive_after = action.get('archive_after_label', False)
+        if action_type == 'label':
+            desc = f'WOULD label "{label}"' + (' + archive' if archive_after else ' (keep in inbox)')
+        elif action_type == 'archive':
+            desc = 'WOULD archive (remove INBOX)'
+        elif action_type == 'delete':
+            desc = 'WOULD move to trash'
+        else:
+            desc = f'WOULD skip ({action_type})'
+        log_entry['status'] = 'dry-run'
+        log_entry['details'] = desc
+        return log_entry
 
     try:
         if action_type == 'archive':
@@ -147,19 +191,26 @@ def execute_action(service, action: Dict) -> Dict:
                 log_entry['error'] = f'Could not create/find label: {label_name}'
                 return log_entry
 
-            # Add label and remove INBOX
+            # Respect archive_after_label: only remove INBOX if the rule said so.
+            # A label WITHOUT archive_after_label means "tag it but keep it visible".
+            archive_after = action.get('archive_after_label', False)
+            body = {'addLabelIds': [label_id]}
+            if archive_after:
+                body['removeLabelIds'] = ['INBOX']
+
             service.users().messages().modify(
                 userId='me',
                 id=message_id,
-                body={
-                    'addLabelIds': [label_id],
-                    'removeLabelIds': ['INBOX']
-                }
+                body=body
             ).execute()
 
             log_entry['status'] = 'success'
             log_entry['label_applied'] = label_name
-            log_entry['details'] = f'Applied label "{label_name}" and removed INBOX'
+            log_entry['archived'] = archive_after
+            log_entry['details'] = (
+                f'Applied label "{label_name}"'
+                + (' and removed INBOX (archived)' if archive_after else ' (kept in inbox)')
+            )
 
         elif action_type == 'keep':
             # No action needed
@@ -185,39 +236,78 @@ def execute_batch(
     actions: List[Dict],
     confidence_threshold: float,
     delete_threshold: float,
-    log_file: Path
+    log_file: Path,
+    skip_deletes: bool = True,
+    only_deletes: bool = False,
+    dry_run: bool = False
 ):
     """Execute a batch of actions and log results."""
 
-    # Filter by confidence threshold
+    # Idempotency: skip anything already executed in a prior run (per audit
+    # logs), unless this is a dry-run. Makes re-runs safe no-ops and prevents
+    # duplicate log entries / double-counting.
+    done_ids = set() if dry_run else already_executed_ids()
+
+    # Filter by confidence threshold + delete policy
     filtered_actions = []
+    skipped_deletes = 0
+    already_done = 0
     for action in actions:
         action_type = action['suggested_action']
         confidence = action['confidence']
 
-        # Apply thresholds
-        if action_type == 'delete' and confidence < delete_threshold:
-            continue  # Skip deletes below higher threshold
-        elif confidence < confidence_threshold:
-            continue  # Skip all other actions below general threshold
+        if action_type == 'keep':
+            continue  # Never act on keeps
+
+        if action.get('message_id') in done_ids:
+            already_done += 1
+            continue  # Already executed in a prior run — skip (idempotent)
+
+        if action_type == 'delete':
+            if skip_deletes:
+                skipped_deletes += 1
+                continue  # Conservative default: deletes need explicit --only-deletes
+            if confidence < delete_threshold:
+                skipped_deletes += 1
+                continue  # Delete below the higher delete threshold
+        else:
+            if only_deletes:
+                continue  # Delete-only pass: skip archives/labels
+            if confidence < confidence_threshold:
+                continue  # Non-delete below general threshold
 
         filtered_actions.append(action)
 
-    print(f"Executing {len(filtered_actions)} actions (filtered from {len(actions)} total)")
+    mode = 'DELETES ONLY' if only_deletes else ('archives/labels (deletes skipped)' if skip_deletes else 'all actions')
+    dry_tag = ' [DRY RUN — no changes]' if dry_run else ''
+    print(f"Executing {len(filtered_actions)} actions (filtered from {len(actions)} total){dry_tag}")
+    print(f"  Mode: {mode}")
     print(f"  Confidence threshold: {confidence_threshold}")
     print(f"  Delete threshold: {delete_threshold}")
+    if skip_deletes and not only_deletes:
+        print(f"  Deletes skipped (use --only-deletes to execute them): {skipped_deletes}")
+    if already_done:
+        print(f"  Already executed in a prior run (skipped, idempotent): {already_done}")
 
     # Initialize counters
-    counts = {'success': 0, 'error': 0, 'skipped': 0}
+    counts = {'success': 0, 'error': 0, 'skipped': 0, 'dry-run': 0}
     action_counts = {'archive': 0, 'delete': 0, 'label': 0, 'keep': 0}
 
-    # Create log file
-    LOGS_DIR.mkdir(exist_ok=True)
+    # Dry-runs do NOT write to the audit log (the dashboard counts log lines
+    # as real executions; a dry-run must never inflate that).
+    if dry_run:
+        import io
+        f = io.StringIO()
+        log_file_note = '(dry-run — not written to disk)'
+    else:
+        LOGS_DIR.mkdir(exist_ok=True)
+        f = open(log_file, 'w', encoding='utf-8')
+        log_file_note = str(log_file)
 
-    with open(log_file, 'w', encoding='utf-8') as f:
+    try:
         # Execute each action with progress bar
         for action in tqdm(filtered_actions, desc="Executing actions"):
-            log_entry = execute_action(service, action)
+            log_entry = execute_action(service, action, dry_run=dry_run)
 
             # Write log entry (JSONL format - one JSON per line)
             f.write(json.dumps(log_entry) + '\n')
@@ -226,12 +316,14 @@ def execute_batch(
             # Update counts
             counts[log_entry['status']] = counts.get(log_entry['status'], 0) + 1
             action_type = action['suggested_action']
-            if log_entry['status'] == 'success':
+            if log_entry['status'] in ('success', 'dry-run'):
                 action_counts[action_type] = action_counts.get(action_type, 0) + 1
+    finally:
+        f.close()
 
     # Print summary
     print(f"\n✅ Execution complete!")
-    print(f"  Log file: {log_file}")
+    print(f"  Log file: {log_file_note}")
     print(f"\n📊 Summary:")
     print(f"  Total actions: {len(filtered_actions)}")
     print(f"  Successful: {counts.get('success', 0)}")
@@ -250,9 +342,15 @@ def main():
     parser.add_argument('--input', required=True, help='Input JSON file with classifications')
     parser.add_argument('--confidence-threshold', type=float, default=0.81,
                         help='Minimum confidence for execution (default: 0.81)')
-    parser.add_argument('--delete-threshold', type=float, default=0.95,
-                        help='Minimum confidence for delete actions (default: 0.95)')
+    parser.add_argument('--delete-threshold', type=float, default=0.97,
+                        help='Minimum confidence for delete actions (default: 0.97)')
     parser.add_argument('--log-file', help='Output log file (default: logs/actions-TIMESTAMP.jsonl)')
+    parser.add_argument('--only-deletes', action='store_true',
+                        help='Execute ONLY deletes (the separate, explicit delete pass)')
+    parser.add_argument('--include-deletes', action='store_true',
+                        help='Include deletes alongside archives/labels (default: deletes are skipped)')
+    parser.add_argument('--dry-run', action='store_true',
+                        help='Show what WOULD happen without touching Gmail')
     args = parser.parse_args()
 
     input_file = Path(args.input)
@@ -266,16 +364,30 @@ def main():
 
     print(f"Loaded {len(actions)} actions from {input_file}")
 
-    # Generate log filename
+    # Generate log filename. Include microseconds + the input stem so two runs
+    # in the same second (e.g. a loop over batches) never collide and clobber
+    # each other's audit trail.
     if args.log_file:
         log_file = Path(args.log_file)
     else:
-        timestamp = datetime.now().strftime('%Y%m%d-%H%M%S')
-        log_file = LOGS_DIR / f"actions-{timestamp}.jsonl"
+        timestamp = datetime.now().strftime('%Y%m%d-%H%M%S-%f')
+        stem = input_file.stem.replace('-classified', '')
+        log_file = LOGS_DIR / f"actions-{timestamp}-{stem}.jsonl"
 
-    # Authenticate
-    print("Authenticating with Gmail API...")
-    service = authenticate()
+    # Resolve delete policy:
+    #   default                -> skip deletes (conservative)
+    #   --include-deletes      -> run deletes alongside archives/labels
+    #   --only-deletes         -> run ONLY deletes (separate explicit pass)
+    only_deletes = args.only_deletes
+    skip_deletes = not (args.include_deletes or args.only_deletes)
+
+    # Authenticate (skip for dry-run so we don't need the modify token to preview)
+    if args.dry_run:
+        print("DRY RUN — not authenticating, no changes will be made.")
+        service = None
+    else:
+        print("Authenticating with Gmail API...")
+        service = authenticate()
 
     # Execute batch
     execute_batch(
@@ -283,7 +395,10 @@ def main():
         actions,
         args.confidence_threshold,
         args.delete_threshold,
-        log_file
+        log_file,
+        skip_deletes=skip_deletes,
+        only_deletes=only_deletes,
+        dry_run=args.dry_run
     )
 
 if __name__ == '__main__':

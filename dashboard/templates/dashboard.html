@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gmail Classifier</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-feature-settings: "tnum" 1; }
+    .nice-scroll::-webkit-scrollbar { height: 8px; width: 8px; }
+    .nice-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+    .nice-scroll::-webkit-scrollbar-track { background: transparent; }
+    .tab-btn { transition: all .15s; }
+    .tab-btn.active { background: #1e293b; color: white; }
+    .tab-btn:not(.active):hover { background: #f8fafc; }
+    .ai-tab-btn:not(.active):hover { background: #f8fafc; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased">
+
+  <!-- Header -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-20">
+    <div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="h-9 w-9 rounded-xl bg-gradient-to-br from-rose-500 to-red-600 flex items-center justify-center text-white text-lg shadow-sm">&#9993;</div>
+        <div>
+          <h1 class="text-lg font-semibold tracking-tight text-slate-900">Gmail Classifier</h1>
+          <p class="text-[11px] text-slate-400" id="lastRunLabel">Loading…</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <!-- Tabs -->
+        <div class="flex rounded-lg border border-slate-200 overflow-hidden text-sm font-medium">
+          <button class="tab-btn active px-4 py-2" data-tab="daily">Daily Run</button>
+          <button class="tab-btn px-4 py-2 text-slate-600 hover:bg-slate-50" data-tab="stats">All-time Stats</button>
+        </div>
+        <button id="refreshBtn"
+          class="inline-flex items-center gap-1 rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white hover:bg-slate-700 transition">
+          <span>&#8635;</span> Refresh
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-6 py-6 space-y-6">
+    <div id="globalError" class="hidden rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"></div>
+
+    <!-- ═══════════════════ TAB: DAILY RUN ═══════════════════ -->
+    <div id="tab-daily" class="space-y-6">
+
+      <!-- Today's summary cards -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+          <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Archived this run</p>
+          <p class="mt-2 text-3xl font-bold text-blue-600" id="d-archive">—</p>
+          <p class="mt-1 text-xs text-slate-400">moved out of inbox</p>
+        </div>
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+          <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Labeled this run</p>
+          <p class="mt-2 text-3xl font-bold text-violet-600" id="d-label">—</p>
+          <p class="mt-1 text-xs text-slate-400">tagged &amp; organised</p>
+        </div>
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+          <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Deleted this run</p>
+          <p class="mt-2 text-3xl font-bold text-rose-600" id="d-delete">—</p>
+          <p class="mt-1 text-xs text-slate-400">trashed (recoverable)</p>
+        </div>
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 border-amber-200 bg-amber-50">
+          <p class="text-xs font-medium uppercase tracking-wide text-amber-500">Pending deletes</p>
+          <p class="mt-2 text-3xl font-bold text-amber-600" id="d-pending">—</p>
+          <p class="mt-1 text-xs text-amber-500">awaiting your review ↓</p>
+        </div>
+      </div>
+
+      <!-- Aging forecast + labels row -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- Aging forecast histogram -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+          <h2 class="text-sm font-semibold text-slate-700">Inbox aging forecast</h2>
+          <p class="text-xs text-slate-400 mb-4">How many "keep" emails will auto-archive if left unread</p>
+          <div class="h-56"><canvas id="forecastChart"></canvas></div>
+        </div>
+
+        <!-- Labels applied today -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+          <h2 class="text-sm font-semibold text-slate-700">Labels applied (this run)</h2>
+          <p class="text-xs text-slate-400 mb-4">Breakdown of what got tagged this run</p>
+          <div class="h-56"><canvas id="dailyLabelsChart"></canvas></div>
+        </div>
+      </div>
+
+      <!-- ═══ AI INSIGHTS (tabbed) ═══ -->
+      <section class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+          <div>
+            <h2 class="text-lg font-semibold text-slate-900">✨ AI Insights</h2>
+            <p class="text-xs text-slate-400 mt-1">Extracted from your emails by Claude Haiku · updated daily</p>
+          </div>
+          <div class="flex rounded-lg border border-slate-200 overflow-hidden text-xs font-medium">
+            <button class="ai-tab-btn active px-4 py-2 bg-slate-900 text-white" data-aitab="school">📅 School <span id="eventsCount" class="ml-1 opacity-70"></span></button>
+            <button class="ai-tab-btn px-4 py-2 text-slate-600" data-aitab="jobs">💼 Jobs <span id="leadsCount" class="ml-1 opacity-70"></span></button>
+          </div>
+        </div>
+
+        <!-- School events pane -->
+        <div id="aitab-school">
+          <div id="schoolEventsBody" class="divide-y divide-slate-100 max-h-96 overflow-auto nice-scroll">
+            <div class="px-6 py-10 text-center text-slate-400 text-sm">Loading…</div>
+          </div>
+          <div class="px-6 py-3 bg-slate-50 border-t border-slate-100">
+            <p class="text-[11px] text-slate-400">Run <code class="bg-slate-100 px-1 rounded">python scripts/extract_school_events.py</code> to refresh</p>
+          </div>
+        </div>
+
+        <!-- Jobs pane -->
+        <div id="aitab-jobs" class="hidden">
+          <div class="overflow-x-auto overflow-y-auto max-h-[32rem] nice-scroll">
+            <table class="min-w-full text-sm">
+              <thead class="bg-slate-50 text-slate-500 uppercase text-xs tracking-wide sticky top-0 z-10">
+                <tr>
+                  <th class="text-left font-medium px-6 py-3">Date</th>
+                  <th class="text-left font-medium px-6 py-3">Role</th>
+                  <th class="text-left font-medium px-6 py-3">Company</th>
+                  <th class="text-left font-medium px-6 py-3">Level</th>
+                  <th class="text-left font-medium px-6 py-3">Comp</th>
+                </tr>
+              </thead>
+              <tbody id="leadsBody" class="divide-y divide-slate-100">
+                <tr><td colspan="7" class="px-6 py-10 text-center text-slate-400">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="px-6 py-3 bg-slate-50 border-t border-slate-100">
+            <p class="text-[11px] text-slate-400">Run <code class="bg-slate-100 px-1 rounded">python scripts/extract_job_leads.py</code> to refresh</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══ DELETION REVIEW QUEUE ═══ -->
+      <section class="bg-white rounded-2xl border border-amber-200 shadow-sm overflow-hidden">
+        <div class="p-6 border-b border-amber-100 bg-amber-50">
+          <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+            <div>
+              <h2 class="text-lg font-semibold text-amber-900">&#9888; Deletion review queue</h2>
+              <p class="text-xs text-amber-700 mt-1">
+                Review these before the next daily run. Rescue anything you want to keep — the rest will be deleted on confirmation.
+                <span id="queueCount" class="font-medium text-amber-900"></span>
+              </p>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-3">
+              <input id="searchInput" type="text" placeholder="Filter sender or subject…"
+                class="w-full sm:w-64 rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400" />
+              <div class="flex items-center gap-2 rounded-lg border border-amber-200 bg-white px-3 py-2">
+                <label for="confSlider" class="text-xs text-slate-500 whitespace-nowrap">Max conf ≤</label>
+                <input id="confSlider" type="range" min="0" max="1" step="0.01" value="1" class="accent-amber-500" />
+                <span id="confValue" class="text-xs font-semibold text-slate-700 w-9 text-right">1.00</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto nice-scroll">
+          <table class="min-w-full text-sm">
+            <thead class="bg-slate-50 text-slate-500 uppercase text-xs tracking-wide">
+              <tr>
+                <th class="text-left font-medium px-6 py-3">Sender</th>
+                <th class="text-left font-medium px-6 py-3">Subject</th>
+                <th class="text-left font-medium px-6 py-3 whitespace-nowrap">Age</th>
+                <th class="text-left font-medium px-6 py-3">Confidence</th>
+                <th class="text-left font-medium px-6 py-3">Rule</th>
+                <th class="text-right font-medium px-6 py-3">Rescue</th>
+              </tr>
+            </thead>
+            <tbody id="deletionsBody" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+
+        <div id="emptyState" class="hidden px-6 py-16 text-center">
+          <div class="text-4xl mb-2">&#127881;</div>
+          <p class="text-slate-600 font-medium">Nothing in the deletion queue</p>
+          <p class="text-slate-400 text-sm mt-1">No emails are currently marked for deletion.</p>
+        </div>
+      </section>
+    </div>
+
+    <!-- ═══════════════════ TAB: ALL-TIME STATS ═══════════════════ -->
+    <div id="tab-stats" class="hidden space-y-6">
+
+      <!-- Headline cards -->
+      <div id="statCards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"></div>
+
+      <!-- Timeline chart -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+        <h2 class="text-sm font-semibold text-slate-700 mb-1">Actions over time</h2>
+        <p class="text-xs text-slate-400 mb-4">Per-day archive / label / delete — log scale</p>
+        <div class="h-56"><canvas id="timelineChart"></canvas></div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+          <h2 class="text-sm font-semibold text-slate-700 mb-1">Action breakdown</h2>
+          <p class="text-xs text-slate-400 mb-4">All-time classifier suggestions</p>
+          <div class="h-64 flex items-center justify-center"><canvas id="actionsChart"></canvas></div>
+        </div>
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+          <h2 class="text-sm font-semibold text-slate-700 mb-1">Confidence distribution</h2>
+          <p class="text-xs text-slate-400 mb-4">High ≥0.80 · Medium 0.60–0.79 · Low &lt;0.60</p>
+          <div class="h-64"><canvas id="confidenceChart"></canvas></div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+          <h2 class="text-sm font-semibold text-slate-700 mb-1">Top rules fired</h2>
+          <p class="text-xs text-slate-400 mb-4">Most common classification reasons</p>
+          <div style="height:320px"><canvas id="rulesChart"></canvas></div>
+        </div>
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+          <h2 class="text-sm font-semibold text-slate-700 mb-1">Top senders cleared</h2>
+          <p class="text-xs text-slate-400 mb-4">Domains with most classified emails</p>
+          <div id="topSenders" class="space-y-1 max-h-80 overflow-auto nice-scroll pr-1"></div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+          <h2 class="text-sm font-semibold text-slate-700 mb-1">Label breakdown</h2>
+          <p class="text-xs text-slate-400 mb-4">All-time emails tagged per label</p>
+          <div class="h-56"><canvas id="labelsChart"></canvas></div>
+        </div>
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+          <h2 class="text-sm font-semibold text-slate-700 mb-1">Rule coverage</h2>
+          <p class="text-xs text-slate-400 mb-4">Matched a rule vs. fell through to heuristics</p>
+          <div id="ruleCoverage" class="space-y-4 pt-2"></div>
+        </div>
+      </div>
+    </div>
+
+    <p class="text-center text-xs text-slate-400 pt-2">Local dashboard · data fetched live · <span id="footerTime"></span></p>
+  </main>
+
+  <div id="toasts" class="fixed bottom-6 right-6 z-50 space-y-2"></div>
+
+  <script>
+    // ─── Palette ───────────────────────────────────────────────────────────────
+    const C = {
+      archive:'#3b82f6', delete:'#ef4444', label:'#8b5cf6', keep:'#10b981',
+      high:'#10b981', medium:'#f59e0b', low:'#ef4444',
+      bar:'#6366f1', sender:'#0ea5e9', forecast:'#f97316',
+    };
+    let charts = {};
+    let allDeletions = [];
+
+    // ─── Tabs ──────────────────────────────────────────────────────────────────
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const tab = btn.dataset.tab;
+        document.querySelectorAll('[id^="tab-"]').forEach(el => el.classList.add('hidden'));
+        document.getElementById('tab-' + tab).classList.remove('hidden');
+      });
+    });
+
+    // ─── Helpers ──────────────────────────────────────────────────────────────
+    function esc(s) {
+      if (s == null) return '';
+      return String(s).replace(/[&<>"']/g, c =>
+        ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+    function showToast(msg, ok=true) {
+      const el = document.createElement('div');
+      el.className = 'flex items-center gap-2 rounded-lg px-4 py-3 text-sm text-white shadow-lg ' +
+        (ok ? 'bg-emerald-600' : 'bg-red-600');
+      el.textContent = (ok ? '✓ ' : '✗ ') + msg;
+      document.getElementById('toasts').appendChild(el);
+      setTimeout(() => el.remove(), 3500);
+    }
+    function destroyChart(k) { if (charts[k]) { charts[k].destroy(); delete charts[k]; } }
+    function ageText(d) {
+      if (d == null) return '—';
+      if (d === 0) return 'today';
+      if (d === 1) return '1d';
+      return d + 'd';
+    }
+    function confBadge(conf) {
+      const txt = conf != null ? conf.toFixed(2) : '—';
+      const cls = conf >= 0.90 ? 'bg-emerald-100 text-emerald-700'
+                : conf >= 0.80 ? 'bg-amber-100 text-amber-700'
+                :                'bg-red-100 text-red-700';
+      return `<span class="inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ${cls}">${txt}</span>`;
+    }
+
+    // ─── Daily run ────────────────────────────────────────────────────────────
+    async function loadDaily() {
+      const [daily, forecast] = await Promise.all([
+        fetch('/api/daily').then(r => r.json()),
+        fetch('/api/forecast').then(r => r.json()),
+      ]);
+
+      // header subtitle
+      if (daily.last_run_time) {
+        const d = new Date(daily.last_run_time);
+        document.getElementById('lastRunLabel').textContent =
+          'Last run: ' + d.toLocaleString();
+      } else {
+        document.getElementById('lastRunLabel').textContent = 'No run recorded yet';
+      }
+
+      // cards
+      document.getElementById('d-archive').textContent = daily.last_24h?.archive ?? 0;
+      document.getElementById('d-label').textContent   = daily.last_24h?.label   ?? 0;
+      document.getElementById('d-delete').textContent  = daily.last_24h?.delete  ?? 0;
+      document.getElementById('d-pending').textContent = daily.pending_deletes    ?? 0;
+
+      // forecast chart
+      destroyChart('forecast');
+      const fc = forecast.forecast || {};
+      const horizons = Object.keys(fc);
+      charts.forecast = new Chart(document.getElementById('forecastChart'), {
+        type: 'bar',
+        data: {
+          labels: horizons,
+          datasets: [{
+            label: 'Emails auto-archived',
+            data: horizons.map(h => fc[h] || 0),
+            backgroundColor: '#f97316',
+            borderRadius: 6,
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                afterLabel: ctx => `of ${forecast.keeps_total || 0} kept emails`
+              }
+            }
+          },
+          scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+        }
+      });
+
+      // daily labels chart
+      destroyChart('dailyLabels');
+      const dl = daily.last_24h_labels || {};
+      const dlKeys = Object.keys(dl);
+      if (dlKeys.length) {
+        charts.dailyLabels = new Chart(document.getElementById('dailyLabelsChart'), {
+          type: 'bar',
+          data: {
+            labels: dlKeys,
+            datasets: [{ data: dlKeys.map(k => dl[k]), backgroundColor: '#8b5cf6', borderRadius: 5 }]
+          },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+          }
+        });
+      } else {
+        document.getElementById('dailyLabelsChart').parentElement.innerHTML =
+          '<p class="text-sm text-slate-400 py-10 text-center">No labels applied this run</p>';
+      }
+    }
+
+    // ─── AI Insights tab switching ────────────────────────────────────────────
+    document.querySelectorAll('.ai-tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.ai-tab-btn').forEach(b => {
+          b.classList.remove('active', 'bg-slate-900', 'text-white');
+          b.classList.add('text-slate-600');
+        });
+        btn.classList.add('active', 'bg-slate-900', 'text-white');
+        btn.classList.remove('text-slate-600', 'hover:bg-slate-50');
+        const tab = btn.dataset.aitab;
+        document.querySelectorAll('[id^="aitab-"]').forEach(el => el.classList.add('hidden'));
+        document.getElementById('aitab-' + tab).classList.remove('hidden');
+      });
+    });
+
+    // ─── Job leads ────────────────────────────────────────────────────────────
+    async function loadJobLeads() {
+      const res = await fetch('/api/job-leads');
+      if (!res.ok) throw new Error('GET /api/job-leads failed');
+      const data = await res.json();
+      const leads = data.leads || [];
+      const body = document.getElementById('leadsBody');
+      const count = document.getElementById('leadsCount');
+
+      count.textContent = leads.length ? leads.length + ' leads' : 'none yet';
+
+      if (!leads.length) {
+        body.textContent = '';
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        td.colSpan = 7;
+        td.className = 'px-6 py-10 text-center text-slate-400 text-sm';
+        td.textContent = 'No job leads yet. Run python scripts/extract_job_leads.py to extract from emails.';
+        tr.appendChild(td);
+        body.appendChild(tr);
+        return;
+      }
+
+      const SENIORITY_COLORS = {
+        'staff':     'bg-violet-100 text-violet-700',
+        'principal': 'bg-purple-100 text-purple-700',
+        'senior':    'bg-blue-100 text-blue-700',
+        'director':  'bg-rose-100 text-rose-700',
+        'mid':       'bg-slate-100 text-slate-600',
+        'other':     'bg-slate-100 text-slate-500',
+      };
+
+      body.textContent = '';
+      leads.forEach(l => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50 transition cursor-pointer';
+
+        // Role cell — role + remote tag + location inline
+        const roleTd = document.createElement('td');
+        roleTd.className = 'px-6 py-3 align-middle';
+        const roleWrap = document.createElement('div');
+        roleWrap.className = 'flex items-center gap-2 flex-wrap';
+        const roleText = document.createElement('span');
+        roleText.className = 'font-medium text-slate-800';
+        roleText.textContent = l.role || '—';
+        roleWrap.appendChild(roleText);
+        if (l.remote === true) {
+          const tag = document.createElement('span');
+          tag.className = 'inline-block rounded-full px-2 py-0.5 text-[11px] font-medium bg-emerald-100 text-emerald-700';
+          tag.textContent = '🌐 Remote';
+          roleWrap.appendChild(tag);
+        } else if (l.remote === false && l.location) {
+          const tag = document.createElement('span');
+          tag.className = 'inline-block rounded-full px-2 py-0.5 text-[11px] font-medium bg-slate-100 text-slate-600';
+          tag.textContent = '📍 ' + l.location;
+          roleWrap.appendChild(tag);
+        }
+        roleTd.appendChild(roleWrap);
+        tr.appendChild(roleTd);
+
+        const simpleCells = [
+          { text: (l._date || '').slice(0, 10), cls: 'text-xs text-slate-400 whitespace-nowrap' },
+          { text: l.company || '—', cls: 'text-slate-700 font-medium' },
+          { badge: l.seniority || 'other', badgeCls: SENIORITY_COLORS[l.seniority] || SENIORITY_COLORS['other'] },
+          { text: l.comp_range || '—', cls: 'text-xs text-slate-500 whitespace-nowrap' },
+        ];
+
+        // Date first
+        // Date — format as "Jun 2025" (no day)
+        const dateTd = document.createElement('td');
+        dateTd.className = 'px-6 py-3 align-middle text-xs text-slate-400 whitespace-nowrap';
+        const rawDate = l._date || '';
+        if (rawDate) {
+          const d = new Date(rawDate);
+          const formatted = isNaN(d) ? rawDate.slice(0,10) :
+            d.toLocaleDateString('en-US', {month:'short', year:'numeric'});
+          dateTd.textContent = formatted;
+        } else {
+          dateTd.textContent = '—';
+        }
+        tr.insertBefore(dateTd, roleTd);
+
+        simpleCells.slice(1).forEach(c => {
+          const td = document.createElement('td');
+          td.className = 'px-6 py-3 align-middle ' + (c.cls || '');
+          if (c.badge !== undefined) {
+            const span = document.createElement('span');
+            span.className = 'inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ' + c.badgeCls;
+            span.textContent = c.badge;
+            td.appendChild(span);
+          } else {
+            td.textContent = c.text || '—';
+          }
+          tr.appendChild(td);
+        });
+
+        // Click to expand description
+        const expandRow = document.createElement('tr');
+        expandRow.className = 'hidden bg-slate-50 border-b border-slate-100';
+        expandRow.dataset.expand = 'true';
+        const expandTd = document.createElement('td');
+        expandTd.colSpan = 6;
+        expandTd.className = 'px-8 py-4';
+
+        const desc = document.createElement('div');
+        desc.className = 'space-y-2';
+
+        if (l.summary) {
+          const p = document.createElement('p');
+          p.className = 'text-sm text-slate-700';
+          p.textContent = l.summary;
+          desc.appendChild(p);
+        }
+
+        if (l.tech_stack && l.tech_stack.length) {
+          const stackDiv = document.createElement('div');
+          stackDiv.className = 'flex flex-wrap gap-1 mt-1';
+          l.tech_stack.forEach(t => {
+            const tag = document.createElement('span');
+            tag.className = 'inline-block rounded px-2 py-0.5 text-[11px] bg-blue-50 text-blue-700 border border-blue-100';
+            tag.textContent = t;
+            stackDiv.appendChild(tag);
+          });
+          desc.appendChild(stackDiv);
+        }
+
+        // From / via row
+        const fromRow = document.createElement('div');
+        fromRow.className = 'flex flex-wrap items-center gap-3 mt-2 text-[11px] text-slate-500';
+
+        const fromEl = document.createElement('span');
+        fromEl.textContent = '✉️ From: ' + (l._from || '—');
+        fromRow.appendChild(fromEl);
+
+        if (l.agency && l.agency !== l._from) {
+          const agEl = document.createElement('span');
+          agEl.textContent = '🏢 Agency: ' + l.agency;
+          fromRow.appendChild(agEl);
+        }
+
+        // Subject as searchable hint
+        const subjEl = document.createElement('span');
+        subjEl.className = 'text-slate-400 truncate max-w-md';
+        subjEl.textContent = '📧 ' + (l._subject || '');
+        fromRow.appendChild(subjEl);
+
+        desc.appendChild(fromRow);
+
+
+        expandTd.appendChild(desc);
+        expandRow.appendChild(expandTd);
+
+        tr.addEventListener('click', () => {
+          const isOpen = !expandRow.classList.contains('hidden');
+          expandRow.classList.toggle('hidden', isOpen);
+          tr.classList.toggle('bg-slate-50', !isOpen);
+        });
+
+        body.appendChild(tr);
+        body.appendChild(expandRow);
+      });
+    }
+
+    // ─── School events ────────────────────────────────────────────────────────
+    async function loadSchoolEvents() {
+      const res = await fetch('/api/school-events?days=60');
+      if (!res.ok) throw new Error('GET /api/school-events failed');
+      const data = await res.json();
+      const events = data.events || [];
+      const body = document.getElementById('schoolEventsBody');
+      const count = document.getElementById('eventsCount');
+
+      count.textContent = events.length ? events.length + ' upcoming' : 'none';
+
+      if (!events.length) {
+        body.textContent = '';
+        const p = document.createElement('div');
+        p.className = 'px-6 py-10 text-center text-slate-400 text-sm';
+        p.textContent = 'No upcoming events found. Run python scripts/extract_school_events.py to extract from newsletters.';
+        body.appendChild(p);
+        return;
+      }
+
+      const CAT_COLORS = {
+        'no-school':   'bg-red-100 text-red-700',
+        'minimum-day': 'bg-orange-100 text-orange-700',
+        'deadline':    'bg-amber-100 text-amber-700',
+        'signup':      'bg-purple-100 text-purple-700',
+        'event':       'bg-blue-100 text-blue-700',
+        'other':       'bg-slate-100 text-slate-600',
+      };
+
+      body.textContent = '';
+      let currentWeek = null;
+
+      events.forEach(e => {
+        const d = new Date(e.date + 'T12:00:00');
+        const weekStart = new Date(d);
+        weekStart.setDate(d.getDate() - d.getDay());
+        const weekKey = weekStart.toISOString().slice(0, 10);
+
+        if (weekKey !== currentWeek) {
+          currentWeek = weekKey;
+          const today = new Date();
+          const daysUntil = Math.round((d - today) / 86400000);
+          const weekLabel = daysUntil <= 7 ? '🔔 This week'
+            : daysUntil <= 14 ? 'Next week'
+            : d.toLocaleDateString('en-US', {month:'short', day:'numeric'}) + ' week';
+          const hdr = document.createElement('div');
+          hdr.className = 'px-6 py-2 bg-slate-50 text-xs font-semibold text-slate-500 uppercase tracking-wide';
+          hdr.textContent = weekLabel;
+          body.appendChild(hdr);
+        }
+
+        const catCls = CAT_COLORS[e.category] || CAT_COLORS['other'];
+        const dateStr = new Date(e.date + 'T12:00:00').toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric'});
+
+        const row = document.createElement('div');
+        row.className = 'px-6 py-3 flex items-start gap-4 hover:bg-slate-50';
+
+        const dateEl = document.createElement('div');
+        dateEl.className = 'w-24 shrink-0 text-xs font-medium text-slate-500 pt-0.5';
+        dateEl.textContent = dateStr;
+
+        const mid = document.createElement('div');
+        mid.className = 'flex-1 min-w-0';
+        const eventText = document.createElement('p');
+        eventText.className = 'text-sm text-slate-800';
+        eventText.textContent = e.event + (e.urgent ? ' ⚠️' : '');
+        const sourceText = document.createElement('p');
+        sourceText.className = 'text-[11px] text-slate-400 mt-0.5 truncate';
+        sourceText.textContent = 'from: ' + (e.source_subject || '');
+        mid.appendChild(eventText);
+        mid.appendChild(sourceText);
+
+        const badge = document.createElement('span');
+        badge.className = 'shrink-0 inline-block rounded-full px-2 py-0.5 text-[11px] font-medium ' + catCls;
+        badge.textContent = e.category;
+
+        row.appendChild(dateEl);
+        row.appendChild(mid);
+        row.appendChild(badge);
+        body.appendChild(row);
+      });
+    }
+
+    // ─── Deletions ────────────────────────────────────────────────────────────
+    function renderDeletions() {
+      const body  = document.getElementById('deletionsBody');
+      const empty = document.getElementById('emptyState');
+      const search   = document.getElementById('searchInput').value.trim().toLowerCase();
+      const maxConf  = parseFloat(document.getElementById('confSlider').value);
+
+      let rows = allDeletions.filter(d => {
+        if (d.confidence != null && d.confidence > maxConf) return false;
+        if (search) {
+          const hay = ((d.from_name||'') + ' ' + (d.from_email||'') + ' ' + (d.subject||'')).toLowerCase();
+          if (!hay.includes(search)) return false;
+        }
+        return true;
+      });
+
+      document.getElementById('queueCount').textContent =
+        allDeletions.length ? `(${rows.length} shown / ${allDeletions.length} total)` : '';
+
+      if (!allDeletions.length) { body.innerHTML=''; empty.classList.remove('hidden'); return; }
+      empty.classList.add('hidden');
+      if (!rows.length) {
+        body.innerHTML = `<tr><td colspan="6" class="px-6 py-10 text-center text-slate-400 text-sm">No emails match filters.</td></tr>`;
+        return;
+      }
+
+      const grouped = {};
+      rows.forEach(d => {
+        const k = d.from_email || 'unknown';
+        if (!grouped[k]) grouped[k] = { name: d.from_name||d.from_email||'Unknown', email: d.from_email||'', items: [] };
+        grouped[k].items.push(d);
+      });
+
+      let html = '';
+      Object.values(grouped).sort((a,b) => b.items.length - a.items.length).forEach(group => {
+        const gid = 'g' + btoa(unescape(encodeURIComponent(group.email))).replace(/[^a-z0-9]/gi,'').slice(0,12);
+        html += `
+          <tr class="bg-slate-50 border-t-2 border-slate-200">
+            <td colspan="6" class="px-6 py-2">
+              <button onclick="toggleGroup('${gid}')" class="flex items-center gap-2 w-full text-left">
+                <span class="text-[11px] text-slate-400">▾</span>
+                <span class="font-semibold text-slate-700 text-sm">${esc(group.name)}</span>
+                <span class="text-xs text-slate-400">${esc(group.email)}</span>
+                <span class="ml-auto inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">${group.items.length} email${group.items.length>1?'s':''}</span>
+              </button>
+            </td>
+          </tr>`;
+        group.items.forEach(d => {
+          html += `
+            <tr data-mid="${esc(d.message_id)}" data-group="${gid}" class="hover:bg-slate-50 transition">
+              <td class="px-6 py-2 pl-10 text-xs text-slate-400 whitespace-nowrap">${ageText(d.age_days)}</td>
+              <td class="px-6 py-2" colspan="2">
+                <div class="text-slate-700 text-sm truncate max-w-[420px]">${esc(d.subject||'(no subject)')}</div>
+                <div class="text-[10px] text-slate-300 mt-0.5">batch ${esc(d.batch)}</div>
+              </td>
+              <td class="px-6 py-2">${confBadge(d.confidence)}</td>
+              <td class="px-6 py-2 text-slate-400 text-xs max-w-[200px] truncate">${esc(d.reasoning||'')}</td>
+              <td class="px-6 py-2 text-right">
+                <button class="rescue-btn inline-flex items-center gap-1 rounded-lg border border-slate-300 px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700 transition"
+                  data-mid="${esc(d.message_id)}" data-batch="${esc(d.batch)}">
+                  🛟 Rescue
+                </button>
+              </td>
+            </tr>`;
+        });
+      });
+      body.innerHTML = html;
+      body.querySelectorAll('.rescue-btn').forEach(btn => btn.addEventListener('click', () => rescue(btn)));
+    }
+
+    function toggleGroup(gid) {
+      document.querySelectorAll(`[data-group="${gid}"]`).forEach(r => r.classList.toggle('hidden'));
+    }
+
+    async function rescue(btn) {
+      const mid = btn.dataset.mid, batch = btn.dataset.batch;
+      btn.disabled = true; btn.textContent = 'Rescuing…'; btn.classList.add('opacity-60');
+      try {
+        const res = await fetch('/api/rescue', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({message_id:mid, batch})
+        });
+        const data = await res.json().catch(()=>({}));
+        if (res.ok && data.ok) {
+          btn.closest('tr').classList.add('opacity-40','pointer-events-none');
+          btn.textContent = '✓ Kept';
+          allDeletions = allDeletions.filter(d => d.message_id !== mid);
+          document.getElementById('d-pending').textContent = allDeletions.length;
+          document.getElementById('queueCount').textContent =
+            allDeletions.length ? `(${allDeletions.length} total)` : '';
+          showToast('Rescued — email will be kept');
+        } else { throw new Error(data.error || 'HTTP ' + res.status); }
+      } catch(e) {
+        btn.disabled=false; btn.classList.remove('opacity-60'); btn.innerHTML='🛟 Rescue';
+        showToast('Rescue failed: ' + e.message, false);
+      }
+    }
+
+    async function loadDeletions() {
+      const res = await fetch('/api/deletions');
+      if (!res.ok) throw new Error('GET /api/deletions failed');
+      allDeletions = await res.json();
+      renderDeletions();
+    }
+
+    // ─── All-time stats ───────────────────────────────────────────────────────
+    function renderStatCards(t) {
+      const cards = [
+        {label:'Fetched',    value:t.fetched,    accent:'text-slate-900', sub:'emails pulled from inbox'},
+        {label:'Classified', value:t.classified, accent:'text-indigo-600', sub:'analyzed by classifier'},
+        {label:'Executed',   value:t.executed,   accent:'text-emerald-600', sub:'actions taken total'},
+        {label:'Kept in inbox', value:t.remaining, accent:'text-emerald-600', sub:'intentionally left unread'},
+      ];
+      document.getElementById('statCards').innerHTML = cards.map(c => `
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+          <p class="text-xs font-medium uppercase tracking-wide text-slate-400">${c.label}</p>
+          <p class="mt-2 text-3xl font-bold ${c.accent}">${c.value ?? 0}</p>
+          <p class="mt-1 text-xs text-slate-400">${c.sub}</p>
+        </div>`).join('');
+    }
+
+    async function loadStats() {
+      const res = await fetch('/api/stats');
+      if (!res.ok) throw new Error('GET /api/stats failed');
+      const s = await res.json();
+      const t = s.totals || {}, a = s.actions || {};
+      renderStatCards(t);
+
+      destroyChart('actions');
+      charts.actions = new Chart(document.getElementById('actionsChart'), {
+        type:'doughnut',
+        data:{
+          labels:['Archive','Delete','Label','Keep'],
+          datasets:[{data:[a.archive||0,a.delete||0,a.label||0,a.keep||0],
+            backgroundColor:[C.archive,C.delete,C.label,C.keep],borderWidth:2,borderColor:'#fff'}]
+        },
+        options:{responsive:true,maintainAspectRatio:false,cutout:'62%',
+          plugins:{legend:{position:'right',labels:{boxWidth:12,usePointStyle:true}}}}
+      });
+
+      destroyChart('confidence');
+      const b = s.confidence_buckets||{};
+      charts.confidence = new Chart(document.getElementById('confidenceChart'), {
+        type:'bar',
+        data:{labels:['High','Medium','Low'],
+          datasets:[{data:[b.high||0,b.medium||0,b.low||0],
+            backgroundColor:[C.high,C.medium,C.low],borderRadius:6}]},
+        options:{responsive:true,maintainAspectRatio:false,
+          plugins:{legend:{display:false}},
+          scales:{y:{beginAtZero:true,ticks:{precision:0}}}}
+      });
+
+      destroyChart('rules');
+      const rows=(s.top_rules||[]).slice(0,10);
+      charts.rules = new Chart(document.getElementById('rulesChart'), {
+        type:'bar',
+        data:{labels:rows.map(r=>r.reasoning),
+          datasets:[{data:rows.map(r=>r.count),backgroundColor:C.bar,borderRadius:5}]},
+        options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+          plugins:{legend:{display:false}},
+          scales:{x:{beginAtZero:true,ticks:{precision:0}},
+            y:{ticks:{autoSkip:false,callback:function(v){
+              const l=this.getLabelForValue(v); return l.length>34?l.slice(0,33)+'…':l;
+            }}}}}
+      });
+
+      const senders=(s.top_senders||[]).slice(0,10);
+      const maxS=Math.max(...senders.map(r=>r.count),1);
+      document.getElementById('topSenders').innerHTML = senders.map(r=>{
+        const pct=Math.round((r.count/maxS)*100);
+        const acts=r.actions?Object.entries(r.actions).map(([k,v])=>`${esc(k)} ${v}`).join(' · '):'';
+        return `<div class="relative flex items-center justify-between rounded-lg px-3 py-2 overflow-hidden">
+          <div class="absolute inset-y-0 left-0 bg-sky-100 rounded-lg" style="width:${pct}%"></div>
+          <div class="relative z-10 min-w-0">
+            <p class="text-sm font-medium text-slate-700 truncate">${esc(r.domain)}</p>
+            ${acts?`<p class="text-[11px] text-slate-400 truncate">${acts}</p>`:''}
+          </div>
+          <span class="relative z-10 text-sm font-semibold text-slate-900 ml-3">${r.count}</span>
+        </div>`;
+      }).join('');
+
+      destroyChart('labels');
+      const lk=Object.keys(s.labels||{});
+      charts.labels = new Chart(document.getElementById('labelsChart'), {
+        type:'bar',
+        data:{labels:lk,datasets:[{data:lk.map(k=>s.labels[k]||0),backgroundColor:'#a78bfa',borderRadius:5}]},
+        options:{responsive:true,maintainAspectRatio:false,
+          plugins:{legend:{display:false}},
+          scales:{y:{beginAtZero:true,ticks:{precision:0}}}}
+      });
+
+      destroyChart('timeline');
+      const tl = s.timeline || {dates:[], archive:[], label:[], delete:[]};
+      charts.timeline = new Chart(document.getElementById('timelineChart'), {
+        type: 'bar',
+        data: {
+          labels: tl.dates,
+          datasets: [
+            {label:'Archive', data:tl.archive, backgroundColor:C.archive, stack:'s'},
+            {label:'Label',   data:tl.label,   backgroundColor:C.label,   stack:'s'},
+            {label:'Delete',  data:tl.delete,  backgroundColor:C.delete,  stack:'s'},
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: {legend:{position:'top',labels:{boxWidth:12,usePointStyle:true}}},
+          scales: {
+            x: {stacked:true},
+            y: {
+              stacked: true, type:'logarithmic',
+              ticks: {
+                callback: v => Number.isInteger(Math.log10(v)) || v === 1 ? v.toLocaleString() : null
+              }
+            }
+          }
+        }
+      });
+
+      const rc=s.rule_coverage||{}, m=rc.matched_rule||0, h=rc.fell_through_heuristic||0;
+      const tot=m+h||1, mPct=Math.round(m/tot*100);
+      document.getElementById('ruleCoverage').innerHTML=`
+        <div class="flex gap-4">
+          <div class="flex-1 rounded-xl bg-emerald-50 border border-emerald-100 p-4">
+            <p class="text-xs font-medium text-emerald-700 uppercase tracking-wide">Matched rule</p>
+            <p class="text-2xl font-bold text-emerald-700 mt-1">${m}</p>
+            <p class="text-xs text-emerald-600/70 mt-0.5">${mPct}%</p>
+          </div>
+          <div class="flex-1 rounded-xl bg-amber-50 border border-amber-100 p-4">
+            <p class="text-xs font-medium text-amber-700 uppercase tracking-wide">Heuristic fallthrough</p>
+            <p class="text-2xl font-bold text-amber-700 mt-1">${h}</p>
+            <p class="text-xs text-amber-600/70 mt-0.5">${100-mPct}%</p>
+          </div>
+        </div>
+        <div class="w-full h-3 rounded-full overflow-hidden flex bg-slate-100">
+          <div class="bg-emerald-500" style="width:${mPct}%"></div>
+          <div class="bg-amber-400" style="width:${100-mPct}%"></div>
+        </div>`;
+    }
+
+    // ─── Load all ─────────────────────────────────────────────────────────────
+    async function loadAll() {
+      document.getElementById('globalError').classList.add('hidden');
+      document.getElementById('footerTime').textContent = new Date().toLocaleTimeString();
+      const errs = [];
+      await Promise.allSettled([
+        loadDaily().catch(e => errs.push('daily: ' + e.message)),
+        loadDeletions().catch(e => errs.push('deletions: ' + e.message)),
+        loadSchoolEvents().catch(e => errs.push('events: ' + e.message)),
+        loadJobLeads().catch(e => errs.push('jobs: ' + e.message)),
+        loadStats().catch(e => errs.push('stats: ' + e.message)),
+      ]);
+      if (errs.length) {
+        const el = document.getElementById('globalError');
+        el.textContent = 'Errors: ' + errs.join(' | ');
+        el.classList.remove('hidden');
+      }
+    }
+
+    document.getElementById('searchInput').addEventListener('input', renderDeletions);
+    document.getElementById('confSlider').addEventListener('input', e => {
+      document.getElementById('confValue').textContent = parseFloat(e.target.value).toFixed(2);
+      renderDeletions();
+    });
+    document.getElementById('refreshBtn').addEventListener('click', loadAll);
+
+    loadAll();
+  </script>
+</body>
+</html>
