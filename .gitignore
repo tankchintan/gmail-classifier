@@ -8,8 +8,9 @@ scripts/classification_rules.personal.json
 # Legacy monolithic rules file (replaced by base+personal split)
 scripts/classification_rules.json
 
-# Personal notes
+# Personal notes and temp files
 linkedin-article-raw-notes.md
+tmp/
 
 # launchd plist (machine-specific paths, regenerate per machine)
 com.ctank.gmail-classifier.plist

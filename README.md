@@ -4,6 +4,17 @@ Rule-based Gmail inbox cleanup with Claude Haiku for uncertain emails, daily aut
 
 **No agents, no cloud infra, no subscription.** Runs entirely locally. Core features are free; AI features cost ~$0.04/run.
 
+## Screenshots
+
+**Daily Run tab** — summary cards, inbox aging forecast, labels applied this run
+
+![Daily Run](docs/screenshots/dashboard-daily-run.png)
+
+**All-time Stats** — action timeline, breakdown, confidence distribution, top rules and senders
+
+![All-time Stats top](docs/screenshots/dashboard-alltime-top.png)
+![All-time Stats bottom](docs/screenshots/dashboard-alltime-bottom.png)
+
 ## What it does
 
 - **Fetches** unread email metadata from Gmail API in batches
@@ -89,9 +100,13 @@ claude   # Claude Code CLI, or open in Cursor / Windsurf / Copilot Chat
 Then just ask in plain English:
 
 > "Fetch and classify a new batch"
+
 > "Show me what's pending deletion before I approve anything"
+
 > "Add a rule to archive all emails from @substack.com after 7 days"
+
 > "What school events are coming up in the next 2 weeks?"
+
 > "Run the daily pipeline and tell me what happened"
 
 The AI reads the files, runs the scripts, and reports back. It will never execute deletes without showing you the list first.
