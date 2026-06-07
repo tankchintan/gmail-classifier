@@ -27,9 +27,15 @@ __pycache__/
 # Data and logs (too large / sensitive)
 data/*.csv
 data/*.json
+logs/**/*.jsonl
+logs/**/*.log
 logs/*.jsonl
 logs/*.log
 audit-reports/*.md
+
+# Session notes and build contracts (personal, not part of project)
+SESSION_SUMMARY.md
+dashboard/CONTRACT.md
 
 # But keep directories
 !data/.gitkeep

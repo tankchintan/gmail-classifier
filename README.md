@@ -256,6 +256,66 @@ gmail-classifier/
 - Google Cloud project with Gmail API enabled
 - API key for your chosen LLM provider (only for AI features — optional)
 
+## Dashboard API
+
+The dashboard is a stdlib `http.server` app (no Flask) serving a single page and three JSON endpoints.
+
+### `GET /api/stats`
+
+Aggregate stats across all batches.
+
+```json
+{
+  "totals": { "fetched": 95, "classified": 95, "executed": 0, "remaining": 95 },
+  "actions": { "archive": 2, "delete": 10, "label": 39, "keep": 44 },
+  "confidence_buckets": { "high": 89, "medium": 3, "low": 3 },
+  "labels": { "Receipts": 4, "Chase": 6, "Finance": 2, ... },
+  "top_rules": [ { "reasoning": "Costco marketing newsletter", "count": 12 }, ... ],
+  "top_senders": [ { "domain": "chase.com", "count": 8, "actions": { "label": 8 } }, ... ],
+  "rule_coverage": { "matched_rule": 88, "fell_through_heuristic": 7 }
+}
+```
+
+- `confidence_buckets`: high ≥ 0.80, medium 0.60–0.79, low < 0.60
+- `top_rules` / `top_senders`: top 10 each by count
+- `remaining` = classified − executed
+
+### `GET /api/deletions`
+
+Emails marked for deletion, joined with metadata, sorted by confidence ascending (most uncertain first).
+
+```json
+[
+  {
+    "message_id": "19e7...",
+    "batch": "004",
+    "from_email": "noreply@example.com",
+    "from_name": "Example Sender",
+    "subject": "The deal you viewed is now on sale",
+    "date": "Fri, 30 May 2026 10:00:00 -0700",
+    "age_days": 1,
+    "confidence": 0.95,
+    "reasoning": "Marketing newsletter — delete"
+  }
+]
+```
+
+### `POST /api/rescue`
+
+Rescue an email from the delete queue (changes its action to `keep`).
+
+Request body:
+```json
+{ "message_id": "19e7...", "batch": "004" }
+```
+
+Response:
+```json
+{ "ok": true, "message_id": "19e7..." }
+```
+
+Returns HTTP 400/404 with `{ "ok": false, "error": "..." }` on failure.
+
 ## License
 
 MIT

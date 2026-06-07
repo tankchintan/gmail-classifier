@@ -340,8 +340,8 @@ def execute_batch(
 def main():
     parser = argparse.ArgumentParser(description='Execute Gmail actions from classified JSON')
     parser.add_argument('--input', required=True, help='Input JSON file with classifications')
-    parser.add_argument('--confidence-threshold', type=float, default=0.81,
-                        help='Minimum confidence for execution (default: 0.81)')
+    parser.add_argument('--confidence-threshold', type=float, default=0.75,
+                        help='Minimum confidence for execution (default: 0.75)')
     parser.add_argument('--delete-threshold', type=float, default=0.97,
                         help='Minimum confidence for delete actions (default: 0.97)')
     parser.add_argument('--log-file', help='Output log file (default: logs/actions-TIMESTAMP.jsonl)')
