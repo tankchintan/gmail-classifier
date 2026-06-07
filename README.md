@@ -58,6 +58,8 @@ fetch_unread.py  →  classify.py  →  execute_actions.py
 3. Create OAuth 2.0 credentials → Desktop app → download as `credentials.json` in this directory
 4. Scopes needed: `gmail.readonly` (fetch) + `gmail.modify` (execute actions)
 
+> **Note:** You'll see two separate OAuth browser popups during setup — one for read-only access (step 3, fetch) and one for modify access (step 5, execute). This is expected. They use different scopes and store separate token files.
+
 ### 2. Python environment
 
 ```bash
