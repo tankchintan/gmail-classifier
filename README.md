@@ -78,8 +78,11 @@ venv/bin/python scripts/fetch_unread.py --batch 001 --limit 50
 ```bash
 venv/bin/python scripts/classify.py \
   --input data/batch-001.csv \
-  --output data/batch-001-classified.json
+  --output data/batch-001-classified.json \
+  --with-body
 ```
+
+`--with-body` fetches email bodies from Gmail for uncertain emails, improving classification accuracy. Without it, only From/Subject headers are used.
 
 ### 5. Execute safe actions (no deletes)
 
