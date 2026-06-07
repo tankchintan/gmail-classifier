@@ -26,7 +26,7 @@ Rule-based Gmail inbox cleanup with Claude Haiku for uncertain emails, daily aut
 ## What it does
 
 - **Fetches** unread email metadata from Gmail API in batches
-- **Classifies** each email using 550+ sender rules with confidence scores
+- **Classifies** each email using 500+ sender rules with confidence scores
 - **Executes** safe actions automatically (archive, label) at ≥ 0.75 confidence
 - **Holds deletes** for manual review — never auto-deletes without explicit approval
 - **Extracts** structured data from newsletters (school calendar events) and recruiter emails (job leads) via Claude Haiku
@@ -59,6 +59,8 @@ fetch_unread.py  →  classify.py  →  execute_actions.py
 4. Scopes needed: `gmail.readonly` (fetch) + `gmail.modify` (execute actions)
 
 > **Note:** You'll see two separate OAuth browser popups during setup — one for read-only access (step 3, fetch) and one for modify access (step 5, execute). This is expected. They use different scopes and store separate token files.
+
+If OAuth isn't working, run this first: `venv/bin/python scripts/test_auth.py`
 
 ### 2. Python environment
 
@@ -149,7 +151,7 @@ Rules live in two files:
 
 | File | Committed | Purpose |
 |---|---|---|
-| `scripts/classification_rules.base.json` | ✅ | 550+ domain/pattern rules — the shared core |
+| `scripts/classification_rules.base.json` | ✅ | 500+ domain/pattern rules — the shared core |
 | `scripts/classification_rules.personal.json` | ❌ gitignored | Your personal sender overrides |
 
 Copy the example to get started:
