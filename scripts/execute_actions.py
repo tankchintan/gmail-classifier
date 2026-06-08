@@ -207,6 +207,10 @@ def execute_action(service, action: Dict, dry_run: bool = False) -> Dict:
             log_entry['status'] = 'success'
             log_entry['label_applied'] = label_name
             log_entry['archived'] = archive_after
+            # If also archived, reflect that in the action field so the dashboard
+            # timeline counts it as an archive, not just a label.
+            if archive_after:
+                log_entry['action'] = 'archive'
             log_entry['details'] = (
                 f'Applied label "{label_name}"'
                 + (' and removed INBOX (archived)' if archive_after else ' (kept in inbox)')
