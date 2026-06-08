@@ -308,6 +308,19 @@ def classify_email(email: Dict, rules: Dict) -> Dict:
             'reasoning': f"Promotional email, expired (unread for {age_days} days)"
         }
 
+    # Global age gate: non-personal emails that have sat unread for 180+ days
+    # are almost certainly stale — archive them rather than clog the inbox forever.
+    # Personal senders (gmail, yahoo, etc.) are always exempt.
+    if age_days >= 180 and not any(domain.endswith(pd) for pd in PERSONAL_DOMAINS):
+        return {
+            'message_id': message_id,
+            'thread_id': thread_id,
+            'suggested_action': 'archive',
+            'label': None,
+            'confidence': 0.80,
+            'reasoning': f"Unread for {age_days} days — stale, auto-archiving"
+        }
+
     # Default: uncertain, keep for manual review
     return {
         'message_id': message_id,

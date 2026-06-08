@@ -36,9 +36,16 @@ BATCH_NUM=$(ls "$PROJECT_ROOT/data/batch-"[0-9][0-9][0-9]".csv" 2>/dev/null \
 NEXT_BATCH=$(printf "%03d" $((10#${BATCH_NUM:-0} + 1)))
 
 log "Step 1: Fetching new mail → batch-$NEXT_BATCH (limit 300)"
-python "$PROJECT_ROOT/scripts/fetch_unread.py" \
-  --batch "$NEXT_BATCH" --limit 300 \
-  >> "$LOG_FILE" 2>&1 && log "  ✅ Fetch done" || log "  ⚠️  Fetch failed (continuing)"
+FETCH_OUTPUT=$(python "$PROJECT_ROOT/scripts/fetch_unread.py" \
+  --batch "$NEXT_BATCH" --limit 300 2>&1)
+FETCH_EXIT=$?
+echo "$FETCH_OUTPUT" >> "$LOG_FILE"
+if [ $FETCH_EXIT -eq 0 ]; then
+  log "  ✅ Fetch done"
+else
+  FETCH_ERROR=$(echo "$FETCH_OUTPUT" | grep -E "Error|error|Exception|Traceback" | tail -3)
+  log "  ⚠️  Fetch failed (exit $FETCH_EXIT): ${FETCH_ERROR:-unknown error}"
+fi
 
 # ── Step 2: Classify new batch ────────────────────────────────────────────────
 NEW_CSV="$PROJECT_ROOT/data/batch-$NEXT_BATCH.csv"

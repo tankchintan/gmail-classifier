@@ -54,17 +54,17 @@
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
           <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Archived this run</p>
           <p class="mt-2 text-3xl font-bold text-blue-600" id="d-archive">—</p>
-          <p class="mt-1 text-xs text-slate-400">moved out of inbox</p>
+          <p class="mt-1 text-xs text-slate-400" id="d-archive-date">moved out of inbox</p>
         </div>
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
           <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Labeled this run</p>
           <p class="mt-2 text-3xl font-bold text-violet-600" id="d-label">—</p>
-          <p class="mt-1 text-xs text-slate-400">tagged &amp; organised</p>
+          <p class="mt-1 text-xs text-slate-400" id="d-label-date">tagged &amp; organised</p>
         </div>
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
           <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Deleted this run</p>
           <p class="mt-2 text-3xl font-bold text-rose-600" id="d-delete">—</p>
-          <p class="mt-1 text-xs text-slate-400">trashed (recoverable)</p>
+          <p class="mt-1 text-xs text-slate-400" id="d-delete-date">trashed (recoverable)</p>
         </div>
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 border-amber-200 bg-amber-50">
           <p class="text-xs font-medium uppercase tracking-wide text-amber-500">Pending deletes</p>
@@ -300,14 +300,35 @@
         fetch('/api/forecast').then(r => r.json()),
       ]);
 
-      // header subtitle
+      // header subtitle + card date labels
+      let runDateLabel = 'No run recorded yet';
+      let cardDateSuffix = '';
       if (daily.last_run_time) {
         const d = new Date(daily.last_run_time);
-        document.getElementById('lastRunLabel').textContent =
-          'Last run: ' + d.toLocaleString();
+        const now = new Date();
+        const isToday = d.toDateString() === now.toDateString();
+        const yesterday = new Date(now); yesterday.setDate(now.getDate() - 1);
+        const isYesterday = d.toDateString() === yesterday.toDateString();
+        const timeStr = d.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+        if (isToday) {
+          runDateLabel = 'Last run: today at ' + timeStr;
+          cardDateSuffix = 'today';
+        } else if (isYesterday) {
+          runDateLabel = 'Last run: yesterday at ' + timeStr;
+          cardDateSuffix = 'yesterday (' + d.toLocaleDateString([], {month:'short', day:'numeric'}) + ')';
+        } else {
+          runDateLabel = 'Last run: ' + d.toLocaleDateString([], {weekday:'short', month:'short', day:'numeric'}) + ' at ' + timeStr;
+          cardDateSuffix = d.toLocaleDateString([], {month:'short', day:'numeric'});
+        }
+        document.getElementById('lastRunLabel').textContent = runDateLabel;
       } else {
-        document.getElementById('lastRunLabel').textContent = 'No run recorded yet';
+        document.getElementById('lastRunLabel').textContent = runDateLabel;
       }
+
+      // Update card subtitles to show the actual run date
+      document.getElementById('d-archive-date').textContent = cardDateSuffix ? 'moved out of inbox · ' + cardDateSuffix : 'moved out of inbox';
+      document.getElementById('d-label-date').textContent   = cardDateSuffix ? 'tagged & organised · ' + cardDateSuffix : 'tagged & organised';
+      document.getElementById('d-delete-date').textContent  = cardDateSuffix ? 'trashed (recoverable) · ' + cardDateSuffix : 'trashed (recoverable)';
 
       // cards
       document.getElementById('d-archive').textContent = daily.last_24h?.archive ?? 0;

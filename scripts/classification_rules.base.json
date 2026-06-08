@@ -596,11 +596,19 @@
       "reasoning": "Recent InfoQ email \u2014 keep"
     },
     {
-      "_note": "PG&E utility alerts (gas work, outage notices) \u2014 keep",
+      "_note": "PG&E utility alerts (gas work, outage notices) \u2014 keep up to 30 days, archive after",
       "from_match": "pgecustomerservice@notification",
+      "max_age_days": 29,
       "action": "keep",
       "confidence": 0.88,
       "reasoning": "PG&E service/work alert \u2014 neighborhood utility notice, keep"
+    },
+    {
+      "from_match": "pgecustomerservice@notification",
+      "min_age_days": 30,
+      "action": "archive",
+      "confidence": 0.82,
+      "reasoning": "PG&E utility alert \u226530 days unread \u2014 stale, archive"
     },
     {
       "_note": "=== SCHOOL / KIDS ==="
@@ -1910,16 +1918,34 @@
     {
       "from_match": "@dropbox.com",
       "subject_match": "sign in",
+      "max_age_days": 13,
       "action": "keep",
       "confidence": 0.92,
       "reasoning": "Dropbox sign-in security alert \u2014 keep"
     },
     {
       "from_match": "@dropbox.com",
+      "subject_match": "sign in",
+      "min_age_days": 14,
+      "action": "archive",
+      "confidence": 0.82,
+      "reasoning": "Dropbox sign-in alert \u226514 days unread \u2014 stale, archive"
+    },
+    {
+      "from_match": "@dropbox.com",
       "subject_match": "security",
+      "max_age_days": 13,
       "action": "keep",
       "confidence": 0.92,
       "reasoning": "Dropbox security alert \u2014 keep"
+    },
+    {
+      "from_match": "@dropbox.com",
+      "subject_match": "security",
+      "min_age_days": 14,
+      "action": "archive",
+      "confidence": 0.82,
+      "reasoning": "Dropbox security alert \u226514 days unread \u2014 stale, archive"
     },
     {
       "from_match": "@dropbox.com",
@@ -2317,9 +2343,17 @@
     },
     {
       "from_match": "@em2.turbotax.intuit.com",
+      "max_age_days": 59,
       "action": "keep",
       "confidence": 0.9,
       "reasoning": "TurboTax tax document confirmation \u2014 keep (important)"
+    },
+    {
+      "from_match": "@em2.turbotax.intuit.com",
+      "min_age_days": 60,
+      "action": "archive",
+      "confidence": 0.82,
+      "reasoning": "TurboTax email \u226560 days unread \u2014 tax season passed, archive"
     },
     {
       "_note": "=== BATCH 006 DERIVED RULES ==="
@@ -3405,9 +3439,17 @@
     },
     {
       "from_match": "@notify.dmvonline.ca.gov",
+      "max_age_days": 59,
       "action": "keep",
       "confidence": 0.92,
       "reasoning": "DMV vehicle registration renewal \u2014 keep"
+    },
+    {
+      "from_match": "@notify.dmvonline.ca.gov",
+      "min_age_days": 60,
+      "action": "archive",
+      "confidence": 0.82,
+      "reasoning": "DMV renewal reminder \u226560 days unread \u2014 stale, archive"
     },
     {
       "_note": "=== BATCH 011/022 LOW-CONF FIXES ==="
