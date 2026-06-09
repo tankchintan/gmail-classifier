@@ -136,23 +136,36 @@ For **script-level AI** (uncertain email classification, school events, job lead
 
 ## Daily automation
 
-`daily_run.sh` runs the full pipeline: fetch new emails → classify → re-classify all batches (age gates fire on older emails) → execute safe actions → extract AI insights.
+`daily_run_profile.sh` runs the full pipeline for a given profile: fetch new emails → classify → re-classify all batches (age gates fire on older emails) → execute safe actions → extract AI insights.
 
 ```bash
-./daily_run.sh            # rule-based only
-./daily_run.sh --with-ai  # also send uncertain emails to Claude Haiku
+./daily_run_profile.sh personal            # rule-based only
+./daily_run_profile.sh personal --with-ai  # also send uncertain emails to LLM
+./daily_run_profile.sh work --with-ai      # run against work email profile
 ```
 
-Schedule on macOS via launchd — see `com.YOURNAME.gmail-classifier.plist.example` for a template.
+Schedule on macOS via launchd — see `com.YOURNAME.gmail-classifier.plist.example` and `com.YOURNAME.gmail-classifier-work.plist.example` for templates.
+
+## Multi-profile support
+
+The project supports multiple email accounts. Each profile gets its own data, logs, rules, and OAuth tokens — fully isolated.
+
+All scripts accept `--profile <name>`:
+```bash
+venv/bin/python scripts/fetch_unread.py --profile work --batch 001 --limit 200
+venv/bin/python scripts/classify.py --profile work --input data/work/batch-001.csv --output data/work/batch-001-classified.json --with-body
+```
+
+Configure profiles in `profiles/{name}.json` (gitignored). See `profiles/personal.example.json` and `profiles/work.example.json` for the format.
 
 ## Classification rules
 
-Rules live in two files:
+Rules live in two files per profile:
 
 | File | Committed | Purpose |
 |---|---|---|
 | `scripts/classification_rules.base.json` | ✅ | 500+ domain/pattern rules — the shared core |
-| `scripts/classification_rules.personal.json` | ❌ gitignored | Your personal sender overrides |
+| `scripts/classification_rules.{profile}.json` | ❌ gitignored | Profile-specific sender overrides |
 
 Copy the example to get started:
 ```bash
@@ -160,7 +173,7 @@ cp scripts/classification_rules.personal.example.json \
    scripts/classification_rules.personal.json
 ```
 
-Personal rules are checked first (first-match-wins), then base rules. The base ruleset covers newsletters, receipts, recruiters, notifications, travel, finance, shopping, and more.
+Profile rules are checked first (first-match-wins), then base rules. The base ruleset covers newsletters, receipts, recruiters, notifications, travel, finance, shopping, and more.
 
 ### Rule format
 
@@ -232,7 +245,7 @@ All extractors are idempotent — already-processed message IDs are skipped on s
 ## Safety
 
 - Deletes **never** auto-execute — require explicit `--only-deletes` flag
-- Every action logged to `logs/actions-TIMESTAMP.jsonl` with full metadata
+- Every action logged to `logs/{profile}/actions-TIMESTAMP.jsonl` with full metadata
 - Execution is idempotent — re-running any batch skips already-executed emails
 - Confidence thresholds are configurable; default is conservative (0.75 safe actions, 0.97 deletes)
 
@@ -240,19 +253,29 @@ All extractors are idempotent — already-processed message IDs are skipped on s
 
 ```
 gmail-classifier/
+├── profiles/
+│   ├── personal.example.json                 # Profile config template
+│   └── work.example.json
 ├── scripts/
-│   ├── fetch_unread.py                       # Gmail API fetcher
-│   ├── classify.py                           # Rule engine + optional AI pass
-│   ├── execute_actions.py                    # Executor with audit log
+│   ├── fetch_unread.py                       # Gmail API fetcher (--profile)
+│   ├── classify.py                           # Rule engine + optional AI pass (--profile)
+│   ├── execute_actions.py                    # Executor with audit log (--profile)
+│   ├── profile_loader.py                     # Shared profile path resolution
 │   ├── extract_school_events.py              # School calendar extraction
 │   ├── extract_job_leads.py                  # Job leads extraction
+│   ├── extractors/meeting_digest.py          # Meeting notes summarizer
 │   ├── classification_rules.base.json        # Committed: shared rules
-│   ├── classification_rules.personal.json    # Gitignored: your rules
-│   └── classification_rules.personal.example.json
+│   └── classification_rules.{profile}.json   # Gitignored: profile-specific rules
+├── data/
+│   ├── personal/                             # Personal email batches + extracts
+│   └── work/                                 # Work email batches + extracts
+├── logs/
+│   ├── personal/                             # Personal action logs + run logs
+│   └── work/                                 # Work action logs + run logs
 ├── dashboard/
-│   ├── dashboard.py                          # Local HTTP server
+│   ├── dashboard.py                          # Local HTTP server (all APIs accept ?profile=)
 │   └── templates/dashboard.html
-├── daily_run.sh                              # Full pipeline script
+├── daily_run_profile.sh                      # Profile-aware pipeline runner
 ├── requirements.txt
 └── .gitignore
 ```
@@ -265,63 +288,18 @@ gmail-classifier/
 
 ## Dashboard API
 
-The dashboard is a stdlib `http.server` app (no Flask) serving a single page and three JSON endpoints.
+The dashboard is a stdlib `http.server` app (no Flask) serving a single page and JSON endpoints. All GET endpoints accept an optional `?profile=` query parameter (defaults to `personal`).
 
-### `GET /api/stats`
-
-Aggregate stats across all batches.
-
-```json
-{
-  "totals": { "fetched": 95, "classified": 95, "executed": 0, "remaining": 95 },
-  "actions": { "archive": 2, "delete": 10, "label": 39, "keep": 44 },
-  "confidence_buckets": { "high": 89, "medium": 3, "low": 3 },
-  "labels": { "Receipts": 4, "Chase": 6, "Finance": 2, ... },
-  "top_rules": [ { "reasoning": "Costco marketing newsletter", "count": 12 }, ... ],
-  "top_senders": [ { "domain": "chase.com", "count": 8, "actions": { "label": 8 } }, ... ],
-  "rule_coverage": { "matched_rule": 88, "fell_through_heuristic": 7 }
-}
-```
-
-- `confidence_buckets`: high ≥ 0.80, medium 0.60–0.79, low < 0.60
-- `top_rules` / `top_senders`: top 10 each by count
-- `remaining` = classified − executed
-
-### `GET /api/deletions`
-
-Emails marked for deletion, joined with metadata, sorted by confidence ascending (most uncertain first).
-
-```json
-[
-  {
-    "message_id": "19e7...",
-    "batch": "004",
-    "from_email": "noreply@example.com",
-    "from_name": "Example Sender",
-    "subject": "The deal you viewed is now on sale",
-    "date": "Fri, 30 May 2026 10:00:00 -0700",
-    "age_days": 1,
-    "confidence": 0.95,
-    "reasoning": "Marketing newsletter — delete"
-  }
-]
-```
-
-### `POST /api/rescue`
-
-Rescue an email from the delete queue (changes its action to `keep`).
-
-Request body:
-```json
-{ "message_id": "19e7...", "batch": "004" }
-```
-
-Response:
-```json
-{ "ok": true, "message_id": "19e7..." }
-```
-
-Returns HTTP 400/404 with `{ "ok": false, "error": "..." }` on failure.
+| Endpoint | Description |
+|---|---|
+| `GET /api/stats` | Aggregate stats (fetched, classified, executed, confidence, top rules/senders) |
+| `GET /api/daily` | Last run summary, recent actions, pending deletes count |
+| `GET /api/forecast` | Inbox aging forecast (how many "keep" emails will auto-archive over time) |
+| `GET /api/digest` | Today's full activity: auto-handled, still in inbox, pending review, meeting notes |
+| `GET /api/deletions` | Emails marked for deletion, sorted by confidence ascending |
+| `GET /api/school-events` | Upcoming school events (accepts `?days=60`) |
+| `GET /api/job-leads` | Structured job leads from recruiter emails |
+| `POST /api/rescue` | Rescue an email from delete queue: `{ "message_id": "...", "batch": "004" }` |
 
 ## License
 
