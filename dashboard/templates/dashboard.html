@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Gmail Classifier</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📬</text></svg>">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
@@ -296,7 +297,7 @@
       </div>
     </div>
 
-    <p class="text-center text-xs text-slate-400 pt-2">Local dashboard · data fetched live · <span id="footerTime"></span></p>
+    <p class="text-center text-xs text-slate-400 pt-2">Local dashboard · page loaded <span id="footerTime"></span> · last fetch <span id="footerLastFetch"></span></p>
   </main>
 
   <div id="toasts" class="fixed bottom-6 right-6 z-50 space-y-2"></div>
@@ -394,6 +395,19 @@
       document.getElementById('d-archive-date').textContent = cardDateSuffix ? 'moved out of inbox · ' + cardDateSuffix : 'moved out of inbox';
       document.getElementById('d-label-date').textContent   = cardDateSuffix ? 'tagged & organised · ' + cardDateSuffix : 'tagged & organised';
       document.getElementById('d-delete-date').textContent  = cardDateSuffix ? 'trashed (recoverable) · ' + cardDateSuffix : 'trashed (recoverable)';
+
+      // Footer: last fetch time
+      if (daily.data_last_fetched) {
+        const dc = new Date(daily.data_last_fetched);
+        const now = new Date();
+        const isToday = dc.toDateString() === now.toDateString();
+        const timeStr = dc.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+        document.getElementById('footerLastFetch').textContent = isToday
+          ? 'today at ' + timeStr
+          : dc.toLocaleDateString([], {month:'short', day:'numeric'}) + ' at ' + timeStr;
+      } else {
+        document.getElementById('footerLastFetch').textContent = 'never';
+      }
 
       // cards
       document.getElementById('d-archive').textContent = daily.last_24h?.archive ?? 0;
@@ -1128,6 +1142,7 @@
     async function loadAll() {
       document.getElementById('globalError').classList.add('hidden');
       document.getElementById('footerTime').textContent = new Date().toLocaleTimeString();
+      document.getElementById('footerLastFetch').textContent = '...';
       const errs = [];
       await Promise.allSettled([
         loadDaily().catch(e => errs.push('daily: ' + e.message)),

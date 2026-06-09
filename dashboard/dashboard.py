@@ -434,10 +434,21 @@ def build_daily_run(profile: str = None):
             pass
     pending_deletes = len(pending_delete_ids)
 
+    # Find most recent batch fetch time (most recently modified batch CSV)
+    batch_csvs = _glob.glob(str(data_dir / 'batch-[0-9][0-9][0-9].csv'))
+    data_last_fetched = None
+    if batch_csvs:
+        try:
+            latest = max(batch_csvs, key=os.path.getmtime)
+            data_last_fetched = datetime.fromtimestamp(os.path.getmtime(latest)).isoformat()
+        except OSError:
+            pass
+
     return {
         'last_run_time': last_run_time.isoformat() if last_run_time else None,
         'new_actions': run_summary['new_actions'],
         'fetched_batch': run_summary['fetched_batch'],
+        'data_last_fetched': data_last_fetched,
         'last_24h': {
             'archive': recent.get('archive', 0),
             'label': recent.get('label', 0),
