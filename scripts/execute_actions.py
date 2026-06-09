@@ -29,22 +29,33 @@ CREDENTIALS_FILE = CANONICAL_ROOT / 'credentials.json'
 # Use the gmail.modify token (shared with create_label.py), NOT the read-only
 # fetcher token. Reusing the read-only token would fail and clobber it.
 TOKEN_FILE = CANONICAL_ROOT / 'token-modify.pickle'
-LOGS_DIR = CANONICAL_ROOT / 'logs'
+LOGS_DIR = CANONICAL_ROOT / 'logs' / 'personal'
 
 def authenticate():
-    """Authenticate with Gmail API using OAuth."""
+    """Authenticate with Gmail API using OAuth.
+    Supports both pickle (.pickle) and JSON (.json) token formats."""
     creds = None
 
     # Token file stores the user's access and refresh tokens
     if TOKEN_FILE.exists():
-        with open(TOKEN_FILE, 'rb') as token:
-            creds = pickle.load(token)
+        if str(TOKEN_FILE).endswith('.json'):
+            from google.oauth2.credentials import Credentials as OAuthCreds
+            creds = OAuthCreds.from_authorized_user_file(str(TOKEN_FILE))
+        else:
+            with open(TOKEN_FILE, 'rb') as token:
+                creds = pickle.load(token)
 
     # If no valid credentials or scope changed, re-auth
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             try:
                 creds.refresh(Request())
+                # Save refreshed token
+                if str(TOKEN_FILE).endswith('.json'):
+                    TOKEN_FILE.write_text(creds.to_json())
+                else:
+                    with open(TOKEN_FILE, 'wb') as token:
+                        pickle.dump(creds, token)
             except Exception as e:
                 print(f"Token refresh failed: {e}")
                 print("Re-authenticating...")
@@ -60,9 +71,12 @@ def authenticate():
                 str(CREDENTIALS_FILE), SCOPES)
             creds = flow.run_local_server(port=0)
 
-        # Save credentials for next run
-        with open(TOKEN_FILE, 'wb') as token:
-            pickle.dump(creds, token)
+            # Save credentials for next run
+            if str(TOKEN_FILE).endswith('.json'):
+                TOKEN_FILE.write_text(creds.to_json())
+            else:
+                with open(TOKEN_FILE, 'wb') as token:
+                    pickle.dump(creds, token)
 
     return build('gmail', 'v1', credentials=creds)
 
@@ -342,7 +356,10 @@ def execute_batch(
         print(f"\n⚠️  {counts['error']} errors occurred. Check log file for details.")
 
 def main():
+    from profile_loader import add_profile_arg, load_profile
+
     parser = argparse.ArgumentParser(description='Execute Gmail actions from classified JSON')
+    add_profile_arg(parser)
     parser.add_argument('--input', required=True, help='Input JSON file with classifications')
     parser.add_argument('--confidence-threshold', type=float, default=0.75,
                         help='Minimum confidence for execution (default: 0.75)')
@@ -356,6 +373,13 @@ def main():
     parser.add_argument('--dry-run', action='store_true',
                         help='Show what WOULD happen without touching Gmail')
     args = parser.parse_args()
+
+    # Apply profile overrides
+    global CREDENTIALS_FILE, TOKEN_FILE, LOGS_DIR
+    profile = load_profile(args.profile)
+    CREDENTIALS_FILE = profile['credentials_path']
+    TOKEN_FILE = profile['token_modify']
+    LOGS_DIR = profile['logs_path']
 
     input_file = Path(args.input)
     if not input_file.exists():

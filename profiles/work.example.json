@@ -1,0 +1,41 @@
+{
+  "_doc": "Profile configuration for a work email account. Copy to work.json (gitignored) and adjust paths to your actual token/credentials locations.",
+  "name": "work",
+  "description": "Work email account",
+
+  "tokens": {
+    "_doc": "Both can point to the same token if it has gmail.modify scope (which includes read). Paths can be absolute or relative to project root.",
+    "readonly": "~/.aisuite/gmail-scripts/gmail_token.json",
+    "modify": "~/.aisuite/gmail-scripts/gmail_token.json"
+  },
+  "credentials": "~/.aisuite/gmail-scripts/client_secrets.json",
+  "token_format": "json",
+
+  "data_dir": "data/work",
+  "rules_file": "scripts/classification_rules.work.json",
+
+  "schedule": {
+    "frequency_hours": 1,
+    "run_at_load": false
+  },
+
+  "fetch": {
+    "limit": 200,
+    "query": "label:inbox is:unread"
+  },
+
+  "classify": {
+    "with_body": true,
+    "with_ai": true,
+    "confidence_threshold": 0.75,
+    "delete_threshold": 0.97
+  },
+
+  "extractors": [
+    "meeting_digest"
+  ],
+
+  "meeting_notes_senders": [
+    "gemini-notes@google.com"
+  ]
+}

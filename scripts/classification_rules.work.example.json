@@ -1,0 +1,100 @@
+{
+  "_doc": "Work email rules — copy to classification_rules.work.json (gitignored) and customize. Rules are evaluated top-to-bottom; FIRST MATCH WINS.",
+  "whitelist_domains": [],
+  "blacklist_domains": [],
+  "newsletter_patterns": [],
+  "receipt_patterns": [],
+  "spam_patterns": [],
+  "sender_rules": [
+    {
+      "_note": "=== SIGNAL — always keep in inbox ==="
+    },
+    {
+      "_note": "Direct emails mentioning you by name",
+      "from_match": "",
+      "subject_match": "YOUR_USERNAME",
+      "action": "keep",
+      "confidence": 0.98,
+      "reasoning": "Directly mentions me — always signal"
+    },
+
+    {
+      "_note": "=== NOISE — auto-archive after age gate ==="
+    },
+    {
+      "_note": "Spam quarantine digests — archive after 1 day",
+      "from_match": "spamadmin@digest",
+      "subject_match": "Quarantined Email Digest",
+      "min_age_days": 1,
+      "action": "archive",
+      "confidence": 0.95,
+      "reasoning": "Spam quarantine digest > 1 day old — archive"
+    },
+    {
+      "_note": "Company newsletter — archive after 3 days",
+      "from_match": "employeecomms@",
+      "subject_match": "The Daily:",
+      "min_age_days": 3,
+      "action": "archive",
+      "confidence": 0.90,
+      "reasoning": "Company newsletter > 3 days unread — archive"
+    },
+    {
+      "_note": "Internal newsletter — keep if recent",
+      "from_match": "employeecomms@",
+      "subject_match": "The Daily:",
+      "max_age_days": 2,
+      "action": "keep",
+      "confidence": 0.70,
+      "reasoning": "Recent company newsletter — keep for now"
+    },
+    {
+      "_note": "CI/CD bot PR notifications (not mentioning you)",
+      "from_match": "no-reply@",
+      "min_age_days": 1,
+      "action": "label",
+      "label": "CI/Bots",
+      "archive_after_label": true,
+      "confidence": 0.85,
+      "reasoning": "CI bot notification > 1 day — label and archive"
+    },
+    {
+      "_note": "Dependabot PRs — always noise",
+      "from_match": "dependabot",
+      "min_age_days": 1,
+      "action": "label",
+      "label": "CI/Bots",
+      "archive_after_label": true,
+      "confidence": 0.92,
+      "reasoning": "Dependabot PR — auto-archive"
+    },
+    {
+      "_note": "Proxy vote notices",
+      "from_match": "proxyvote.com",
+      "min_age_days": 7,
+      "action": "archive",
+      "confidence": 0.88,
+      "reasoning": "Proxy vote notice > 7 days — archive"
+    },
+    {
+      "_note": "Meeting notes — label for digest, archive after 2 days",
+      "from_match": "meeting-notes@",
+      "min_age_days": 2,
+      "action": "label",
+      "label": "Meeting Notes",
+      "archive_after_label": true,
+      "confidence": 0.85,
+      "reasoning": "Meeting notes > 2 days — label and archive"
+    },
+    {
+      "_note": "Meeting notes — keep recent for reading",
+      "from_match": "meeting-notes@",
+      "max_age_days": 1,
+      "action": "label",
+      "label": "Meeting Notes",
+      "archive_after_label": false,
+      "confidence": 0.80,
+      "reasoning": "Recent meeting notes — label but keep in inbox"
+    }
+  ]
+}

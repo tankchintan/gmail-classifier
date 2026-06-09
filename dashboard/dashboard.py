@@ -24,6 +24,36 @@ LOGS_DIR = PROJECT_ROOT / "logs"
 RULES_PATH = PROJECT_ROOT / "scripts" / "classification_rules.json"
 TEMPLATE_PATH = Path(__file__).parent / "templates" / "dashboard.html"
 
+
+def _profile_data_dir(profile: str = None) -> Path:
+    """Return data directory for a given profile. Always data/{profile}/."""
+    name = profile or 'personal'
+    return DATA_DIR / name
+
+
+def _profile_logs_dir(profile: str = None) -> Path:
+    """Return logs directory for a given profile. Always logs/{profile}/."""
+    name = profile or 'personal'
+    return LOGS_DIR / name
+
+
+def _profile_message_ids(profile: str = None) -> set:
+    """Return all message_ids that exist in a profile's batch CSVs."""
+    data_dir = _profile_data_dir(profile)
+    ids = set()
+    for csv_path in glob.glob(str(data_dir / "batch-*.csv")):
+        if 'temp' in csv_path or 'janfeb' in csv_path:
+            continue
+        try:
+            with open(csv_path, newline="", encoding="utf-8") as fh:
+                for row in csv.DictReader(fh):
+                    mid = (row.get("message_id") or "").strip()
+                    if mid:
+                        ids.add(mid)
+        except (OSError, csv.Error):
+            pass
+    return ids
+
 HOST = "localhost"
 PORT = 5001
 
@@ -34,24 +64,26 @@ _BATCH_RE = re.compile(r"batch-(\d+)-classified\.json$")
 # Data loading / aggregation helpers
 # ---------------------------------------------------------------------------
 
-def discover_batches():
+def discover_batches(profile: str = None):
     """Return sorted list of batch ids (e.g. '001') that have BOTH a
     classified JSON and a sibling CSV."""
+    data_dir = _profile_data_dir(profile)
     batches = []
-    for path in glob.glob(str(DATA_DIR / "batch-*-classified.json")):
+    for path in glob.glob(str(data_dir / "batch-*-classified.json")):
         m = _BATCH_RE.search(os.path.basename(path))
         if not m:
             continue
         bid = m.group(1)
-        if (DATA_DIR / f"batch-{bid}.csv").exists():
+        if (data_dir / f"batch-{bid}.csv").exists():
             batches.append(bid)
     return sorted(batches)
 
 
-def load_csv(batch_id):
+def load_csv(batch_id, profile: str = None):
     """Return {message_id: row_dict} for a batch CSV. Empty dict if missing/bad."""
+    data_dir = _profile_data_dir(profile)
     rows = {}
-    csv_path = DATA_DIR / f"batch-{batch_id}.csv"
+    csv_path = data_dir / f"batch-{batch_id}.csv"
     try:
         with open(csv_path, newline="", encoding="utf-8") as fh:
             for row in csv.DictReader(fh):
@@ -63,9 +95,10 @@ def load_csv(batch_id):
     return rows
 
 
-def load_classified(batch_id):
+def load_classified(batch_id, profile: str = None):
     """Return list of classification dicts for a batch. Empty list if missing/bad."""
-    json_path = DATA_DIR / f"batch-{batch_id}-classified.json"
+    data_dir = _profile_data_dir(profile)
+    json_path = data_dir / f"batch-{batch_id}-classified.json"
     try:
         with open(json_path, encoding="utf-8") as fh:
             data = json.load(fh)
@@ -88,25 +121,17 @@ def load_rule_reasonings():
     return reasonings
 
 
-def count_executed():
-    """Total line count across logs/actions-*.jsonl files; 0 if none."""
-    total = 0
-    for path in glob.glob(str(LOGS_DIR / "actions-*.jsonl")):
-        try:
-            with open(path, encoding="utf-8") as fh:
-                for line in fh:
-                    if line.strip():
-                        total += 1
-        except OSError:
-            pass
-    return total
+def count_executed(profile: str = None):
+    """Count unique successfully executed message_ids; scoped to profile if set."""
+    return len(executed_message_ids(profile))
 
 
-def executed_message_ids():
+def executed_message_ids(profile: str = None):
     """Set of message_ids that were SUCCESSFULLY executed (any action) per the
-    audit logs. Used to exclude already-done items from the pending queues."""
+    audit logs. Reads from logs/{profile}/ directory."""
+    logs_dir = _profile_logs_dir(profile)
     done = set()
-    for path in glob.glob(str(LOGS_DIR / "actions-*.jsonl")):
+    for path in glob.glob(str(logs_dir / "actions-*.jsonl")):
         try:
             with open(path, encoding="utf-8") as fh:
                 for line in fh:
@@ -153,11 +178,13 @@ def domain_of(email_addr):
 # API builders
 # ---------------------------------------------------------------------------
 
-def build_timeline():
+def build_timeline(profile: str = None):
     """Return per-day action counts from audit logs for the timeline chart."""
+    logs_dir = _profile_logs_dir(profile)
+
     by_date: dict = defaultdict(lambda: defaultdict(int))
     seen: set = set()
-    for path in glob.glob(str(LOGS_DIR / "actions-*.jsonl")):
+    for path in glob.glob(str(logs_dir / "actions-*.jsonl")):
         try:
             with open(path, encoding="utf-8") as fh:
                 for line in fh:
@@ -180,7 +207,6 @@ def build_timeline():
                     if not ts_raw or not action:
                         continue
                     try:
-                        # timestamps are UTC; convert to local date for grouping
                         utc_dt = datetime.strptime(ts_raw[:19], "%Y-%m-%dT%H:%M:%S").replace(tzinfo=timezone.utc)
                         local_date = utc_dt.astimezone().date().isoformat()
                     except ValueError:
@@ -197,8 +223,8 @@ def build_timeline():
     }
 
 
-def build_stats():
-    batches = discover_batches()
+def build_stats(profile: str = None):
+    batches = discover_batches(profile)
     rule_reasonings = load_rule_reasonings()
 
     fetched = 0
@@ -214,11 +240,11 @@ def build_stats():
     seen_message_ids: set = set()  # deduplicate across batches
 
     for bid in batches:
-        csv_rows = load_csv(bid)
+        csv_rows = load_csv(bid, profile)
         # Count only unique message_ids for fetched total
         new_ids = set(csv_rows.keys()) - seen_message_ids
         fetched += len(new_ids)
-        for entry in load_classified(bid):
+        for entry in load_classified(bid, profile):
             mid = entry.get("message_id")
             if mid in seen_message_ids:
                 continue  # duplicate — already counted in an earlier batch
@@ -260,8 +286,8 @@ def build_stats():
                 if action:
                     sender_actions[dom][action] += 1
 
-    executed = count_executed()
-    timeline = build_timeline()
+    executed = count_executed(profile)
+    timeline = build_timeline(profile)
 
     top_rules = [{"reasoning": r, "count": c}
                  for r, c in rule_counts.most_common(10)]
@@ -299,13 +325,19 @@ def build_stats():
     }
 
 
-def build_daily_run():
+def build_daily_run(profile: str = None):
     """Parse the most recent daily-run log + audit entries from the last 24h."""
     import glob as _glob
     from datetime import timedelta
 
+    data_dir = _profile_data_dir(profile)
+
     # ── Find most recent daily run log ───────────────────────────────────────
-    run_logs = sorted(_glob.glob(str(LOGS_DIR / 'daily-run-*.log')))
+    logs_dir = _profile_logs_dir(profile)
+    profile_name = profile or 'personal'
+    run_logs = sorted(_glob.glob(str(logs_dir / f'daily-run-{profile_name}-*.log')))
+    if not run_logs:
+        run_logs = sorted(_glob.glob(str(logs_dir / 'daily-run-*.log')))
     last_run_time = None
     run_summary = {'fetched_batch': None, 'new_actions': 0, 'log_lines': []}
 
@@ -344,7 +376,7 @@ def build_daily_run():
     recent_labels: Counter = Counter()
     recent_senders: Counter = Counter()
 
-    for path in _glob.glob(str(LOGS_DIR / 'actions-*.jsonl')):
+    for path in _glob.glob(str(logs_dir / 'actions-*.jsonl')):
         try:
             with open(path, encoding='utf-8') as fh:
                 for line in fh:
@@ -368,13 +400,12 @@ def build_daily_run():
                     recent[action] += 1
                     if entry.get('label_applied'):
                         recent_labels[entry['label_applied']] += 1
-                    # extract domain from message metadata (best effort)
         except OSError:
             pass
 
     # ── Pending deletes count ─────────────────────────────────────────────────
     done = set()
-    for path in _glob.glob(str(LOGS_DIR / 'actions-*.jsonl')):
+    for path in _glob.glob(str(logs_dir / 'actions-*.jsonl')):
         try:
             with open(path, encoding='utf-8') as fh:
                 for line in fh:
@@ -390,17 +421,18 @@ def build_daily_run():
         except OSError:
             pass
 
-    pending_deletes = 0
-    for path in _glob.glob(str(DATA_DIR / 'batch-*-classified.json')):
+    pending_delete_ids = set()
+    for path in _glob.glob(str(data_dir / 'batch-*-classified.json')):
         if 'temp' in path or 'janfeb' in path:
             continue
         try:
             with open(path, encoding='utf-8') as fh:
                 for e in json.load(fh):
                     if e.get('suggested_action') == 'delete' and e.get('message_id') not in done:
-                        pending_deletes += 1
+                        pending_delete_ids.add(e['message_id'])
         except (OSError, ValueError):
             pass
+    pending_deletes = len(pending_delete_ids)
 
     return {
         'last_run_time': last_run_time.isoformat() if last_run_time else None,
@@ -416,10 +448,13 @@ def build_daily_run():
     }
 
 
-def build_aging_forecast():
+def build_aging_forecast(profile: str = None):
     """For unexecuted 'keep' emails, forecast how many will age out (archive/label)
     if we re-classify at +1d, +3d, +7d, +14d, +30d from now."""
     from datetime import timedelta
+
+    data_dir = _profile_data_dir(profile)
+    logs_dir = _profile_logs_dir(profile)
 
     rules_data = {}
     try:
@@ -429,7 +464,7 @@ def build_aging_forecast():
         return {}
 
     done = set()
-    for path in glob.glob(str(LOGS_DIR / 'actions-*.jsonl')):
+    for path in glob.glob(str(logs_dir / 'actions-*.jsonl')):
         try:
             with open(path, encoding='utf-8') as fh:
                 for line in fh:
@@ -446,11 +481,11 @@ def build_aging_forecast():
 
     seen = set()
     keeps = []  # (message_id, age_days, from_email)
-    for batch_path in sorted(glob.glob(str(DATA_DIR / 'batch-*-classified.json'))):
+    for batch_path in sorted(glob.glob(str(data_dir / 'batch-*-classified.json'))):
         if 'temp' in batch_path or 'janfeb' in batch_path:
             continue
         batch = os.path.basename(batch_path).replace('batch-','').replace('-classified.json','')
-        csv_path = DATA_DIR / f'batch-{batch}.csv'
+        csv_path = data_dir / f'batch-{batch}.csv'
         try:
             clf_map = {e['message_id']: e for e in json.load(open(batch_path, encoding='utf-8'))}
             with open(csv_path, newline='', encoding='utf-8') as fh:
@@ -499,9 +534,10 @@ def build_aging_forecast():
     return {'keeps_total': len(keeps), 'forecast': forecast}
 
 
-def build_school_events(days_ahead: int = 60):
+def build_school_events(days_ahead: int = 60, profile: str = None):
     """Return upcoming school events from data/school-events.json."""
-    events_file = DATA_DIR / 'school-events.json'
+    data_dir = _profile_data_dir(profile)
+    events_file = data_dir / 'school-events.json'
     if not events_file.exists():
         return {'events': [], 'total_extracted': 0}
 
@@ -617,9 +653,10 @@ def build_school_events(days_ahead: int = 60):
     return {'events': deduped, 'total_extracted': total}
 
 
-def build_job_leads():
+def build_job_leads(profile: str = None):
     """Return structured job leads from data/job-leads.json."""
-    leads_file = DATA_DIR / 'job-leads.json'
+    data_dir = _profile_data_dir(profile)
+    leads_file = data_dir / 'job-leads.json'
     if not leads_file.exists():
         return {'leads': [], 'total': 0}
     try:
@@ -639,14 +676,158 @@ def build_job_leads():
     return {'leads': leads, 'total': len(leads)}
 
 
-def build_deletions():
-    batches = discover_batches()
-    done = executed_message_ids()  # exclude already-executed (trashed) items
+def build_digest(profile: str = None):
+    """Build today's full inbox digest: what arrived, what was auto-handled,
+    what's still waiting. Works for any profile (defaults to personal).
+
+    Returns:
+      {
+        "profile": "personal",
+        "date": "2026-06-08",
+        "auto_handled": [ {action, label, subject, from, reasoning, timestamp}, ... ],
+        "still_in_inbox": [ {subject, from, age_days, confidence, reasoning}, ... ],
+        "pending_review": [ {subject, from, age_days, confidence, reasoning}, ... ],
+        "meeting_notes": [ {meeting_title, date, summary}, ... ],
+        "summary": { "archived": N, "labeled": N, "kept": N, "pending": N }
+      }
+    """
+    # Determine data directory based on profile
+    profile = profile or 'personal'
+    profile_data_dir = _profile_data_dir(profile)
+    logs_dir = _profile_logs_dir(profile)
+    today = datetime.now().date().isoformat()
+
+    # Gather today's executed actions from audit logs
+    # Log filenames use local time, so match against local date
+    auto_handled = []
+    today_prefix = today.replace('-', '')  # 20260608
+
+    for path in sorted(glob.glob(str(logs_dir / f"actions-{today_prefix}*.jsonl"))):
+        try:
+            with open(path, encoding="utf-8") as fh:
+                for line in fh:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        entry = json.loads(line)
+                    except ValueError:
+                        continue
+                    if entry.get("status") != "success":
+                        continue
+                    auto_handled.append({
+                        "action": entry.get("action", ""),
+                        "label": entry.get("label_applied", ""),
+                        "message_id": entry.get("message_id", ""),
+                        "reasoning": entry.get("reasoning", ""),
+                        "timestamp": entry.get("timestamp", ""),
+                    })
+        except OSError:
+            pass
+
+    # Enrich auto_handled with subject/sender from batch CSVs
+    all_csv_rows = {}
+    for csv_path in glob.glob(str(profile_data_dir / "batch-*.csv")):
+        if 'temp' in csv_path or 'janfeb' in csv_path:
+            continue
+        try:
+            with open(csv_path, newline="", encoding="utf-8") as fh:
+                for row in csv.DictReader(fh):
+                    mid = (row.get("message_id") or "").strip()
+                    if mid:
+                        all_csv_rows[mid] = row
+        except (OSError, csv.Error):
+            pass
+
+    for item in auto_handled:
+        meta = all_csv_rows.get(item["message_id"], {})
+        item["subject"] = meta.get("subject", "")
+        item["from_email"] = meta.get("from_email", "")
+        item["from_name"] = meta.get("from_name", "")
+        item["email_date"] = meta.get("date", "")
+        item["age_days"] = compute_age_days(meta.get("date", ""))
+
+    # Gather emails still classified as 'keep' (in inbox) and 'uncertain'
+    done_ids = executed_message_ids(profile)
+    still_in_inbox = []
+    pending_review = []
+
+    for batch_path in sorted(glob.glob(str(profile_data_dir / "batch-*-classified.json"))):
+        if 'temp' in batch_path or 'janfeb' in batch_path:
+            continue
+        try:
+            entries = json.load(open(batch_path, encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        for entry in entries:
+            mid = entry.get("message_id")
+            if mid in done_ids:
+                continue
+            if entry.get("suggested_action") != "keep":
+                continue
+            meta = all_csv_rows.get(mid, {})
+            age = compute_age_days(meta.get("date", ""))
+            row = {
+                "message_id": mid,
+                "subject": meta.get("subject", ""),
+                "from_email": meta.get("from_email", ""),
+                "from_name": meta.get("from_name", ""),
+                "age_days": age,
+                "confidence": entry.get("confidence", 0),
+                "reasoning": entry.get("reasoning", ""),
+            }
+            if entry.get("confidence", 0) < 0.60:
+                pending_review.append(row)
+            else:
+                still_in_inbox.append(row)
+
+    # Sort: most recent first for inbox, least confident first for review
+    still_in_inbox.sort(key=lambda r: r.get("age_days") or 0)
+    pending_review.sort(key=lambda r: r.get("confidence", 0))
+
+    # Meeting notes (if extractor has run)
+    meeting_notes = []
+    digest_file = profile_data_dir / "meeting-digest.json"
+    if digest_file.exists():
+        try:
+            all_notes = json.loads(digest_file.read_text(encoding="utf-8"))
+            # Only include today's and yesterday's notes
+            for note in all_notes[:10]:
+                meeting_notes.append({
+                    "meeting_title": note.get("meeting_title", ""),
+                    "date": note.get("date", ""),
+                    "summary": note.get("summary", "")[:200],
+                })
+        except (OSError, ValueError):
+            pass
+
+    archived_count = sum(1 for h in auto_handled if h["action"] == "archive")
+    labeled_count = sum(1 for h in auto_handled if h["action"] == "label")
+
+    return {
+        "profile": profile,
+        "date": today,
+        "auto_handled": auto_handled,
+        "still_in_inbox": still_in_inbox[:50],
+        "pending_review": pending_review[:20],
+        "meeting_notes": meeting_notes,
+        "summary": {
+            "archived": archived_count,
+            "labeled": labeled_count,
+            "kept": len(still_in_inbox),
+            "pending": len(pending_review),
+        },
+    }
+
+
+def build_deletions(profile: str = None):
+    batches = discover_batches(profile)
+    done = executed_message_ids(profile)  # exclude already-executed (trashed) items
     rows = []
     seen_mids = set()
     for bid in batches:
-        csv_rows = load_csv(bid)
-        for entry in load_classified(bid):
+        csv_rows = load_csv(bid, profile)
+        for entry in load_classified(bid, profile):
             if entry.get("suggested_action") != "delete":
                 continue
             mid = entry.get("message_id")
@@ -748,34 +929,45 @@ class DashboardHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def _parse_qs(self):
+        """Parse query string into a dict."""
+        params = {}
+        try:
+            qs = self.path.split("?", 1)[1] if "?" in self.path else ""
+            for p in qs.split("&"):
+                if "=" in p:
+                    k, v = p.split("=", 1)
+                    params[k] = v
+        except (IndexError, ValueError):
+            pass
+        return params
+
     def do_GET(self):
         path = self.path.split("?", 1)[0].rstrip("/") or "/"
         try:
+            params = self._parse_qs()
+            profile = params.get("profile") or None
+
             if path == "/":
                 if not TEMPLATE_PATH.exists():
                     self._send_text("dashboard.html not found", 404)
                     return
                 self._send_html(TEMPLATE_PATH.read_bytes())
             elif path == "/api/stats":
-                self._send_json(build_stats())
+                self._send_json(build_stats(profile))
             elif path == "/api/deletions":
-                self._send_json(build_deletions())
+                self._send_json(build_deletions(profile))
             elif path == "/api/daily":
-                self._send_json(build_daily_run())
+                self._send_json(build_daily_run(profile))
             elif path == "/api/forecast":
-                self._send_json(build_aging_forecast())
+                self._send_json(build_aging_forecast(profile))
             elif path == "/api/job-leads":
-                self._send_json(build_job_leads())
+                self._send_json(build_job_leads(profile))
+            elif path == "/api/digest":
+                self._send_json(build_digest(profile))
             elif path == "/api/school-events":
-                days = 60
-                try:
-                    qs = self.path.split("?", 1)[1] if "?" in self.path else ""
-                    for p in qs.split("&"):
-                        if p.startswith("days="):
-                            days = int(p[5:])
-                except (IndexError, ValueError):
-                    pass
-                self._send_json(build_school_events(days))
+                days = int(params.get("days", 60))
+                self._send_json(build_school_events(days, profile))
             else:
                 self._send_json({"error": "not found"}, 404)
         except Exception as exc:  # noqa: BLE001 - never crash the server

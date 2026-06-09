@@ -1,19 +1,24 @@
 # OAuth credentials and tokens (NEVER commit these!)
 credentials.json
-token.pickle
-token-modify.pickle
+credentials-*.json
+token*.pickle
 
 # Private classification rules (personal sender addresses — keep gitignored)
 scripts/classification_rules.personal.json
+scripts/classification_rules.work.json
 # Legacy monolithic rules file (replaced by base+personal split)
 scripts/classification_rules.json
+
+# Profile configs (contain machine-specific paths)
+profiles/personal.json
+profiles/work.json
 
 # Personal notes and temp files
 linkedin-article-raw-notes.md
 tmp/
 
-# launchd plist (machine-specific paths, regenerate per machine)
-com.ctank.gmail-classifier.plist
+# launchd plists (machine-specific paths, regenerate per machine)
+com.ctank.*.plist
 
 # Python
 venv/
@@ -24,13 +29,11 @@ __pycache__/
 .Python
 *.so
 
-# Data and logs (too large / sensitive)
-data/*.csv
-data/*.json
-logs/**/*.jsonl
-logs/**/*.log
-logs/*.jsonl
-logs/*.log
+# Data and logs (too large / sensitive, per-profile)
+data/personal/
+data/work/
+logs/personal/
+logs/work/
 audit-reports/*.md
 
 # Session notes and build contracts (personal, not part of project)

@@ -23,6 +23,17 @@ Then just ask:
 
 The AI will read the project structure and be ready to help.
 
+## Multi-profile support
+
+The project supports multiple email accounts via profiles. Each profile has its own data, logs, rules, and OAuth tokens.
+
+```bash
+./daily_run_profile.sh personal --with-ai   # personal Gmail
+./daily_run_profile.sh work --with-ai       # work email
+```
+
+All scripts accept `--profile <name>` (e.g. `--profile work`). Profiles are configured in `profiles/{name}.json` (gitignored). See `profiles/personal.example.json` for the format.
+
 ## Conversational workflow examples
 
 ### Process a new batch
@@ -106,11 +117,12 @@ Remind your AI session of these if it ever forgets:
 
 | File | Purpose |
 |---|---|
-| `data/batch-NNN.csv` | Raw fetched email metadata |
-| `data/batch-NNN-classified.json` | Classifications with confidence + reasoning |
-| `logs/actions-*.jsonl` | Audit trail of every executed action |
-| `logs/daily-run-*.log` | Full daily run output |
-| `data/school-events.json` | Extracted school calendar events |
-| `data/job-leads.json` | Extracted job leads pipeline |
-| `scripts/classification_rules.personal.json` | Your personal sender rules (gitignored) |
+| `data/{profile}/batch-NNN.csv` | Raw fetched email metadata |
+| `data/{profile}/batch-NNN-classified.json` | Classifications with confidence + reasoning |
+| `logs/{profile}/actions-*.jsonl` | Audit trail of every executed action |
+| `logs/{profile}/daily-run-*.log` | Full daily run output |
+| `data/personal/school-events.json` | Extracted school calendar events |
+| `data/personal/job-leads.json` | Extracted job leads pipeline |
+| `profiles/{profile}.json` | Profile config (tokens, data dir, rules — gitignored) |
+| `scripts/classification_rules.{profile}.json` | Profile-specific sender rules (gitignored) |
 | `scripts/classification_rules.base.json` | Shared domain/pattern rules |

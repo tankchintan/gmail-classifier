@@ -1,0 +1,36 @@
+{
+  "_doc": "Profile configuration for gmail-classifier. Copy to personal.json (gitignored) and adjust paths.",
+  "name": "personal",
+  "description": "Personal Gmail account",
+
+  "tokens": {
+    "readonly": "token.pickle",
+    "modify": "token-modify.pickle"
+  },
+  "credentials": "credentials.json",
+
+  "data_dir": "data/personal",
+  "rules_file": "scripts/classification_rules.personal.json",
+
+  "schedule": {
+    "frequency_hours": 8,
+    "run_at_load": false
+  },
+
+  "fetch": {
+    "limit": 300,
+    "query": "label:inbox is:unread category:primary"
+  },
+
+  "classify": {
+    "with_body": true,
+    "with_ai": true,
+    "confidence_threshold": 0.75,
+    "delete_threshold": 0.97
+  },
+
+  "extractors": [
+    "school_events",
+    "job_leads"
+  ]
+}

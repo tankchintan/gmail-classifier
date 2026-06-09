@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.YOURNAME.gmail-classifier-work</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>/path/to/gmail-classifier/daily_run_profile.sh</string>
+    <string>work</string>
+    <!-- Add --with-ai below if you want the AI classification pass -->
+    <string>--with-ai</string>
+  </array>
+
+  <!-- Run every hour (3600 seconds) -->
+  <key>StartInterval</key>
+  <integer>3600</integer>
+
+  <!-- Restart if it dies -->
+  <key>KeepAlive</key>
+  <dict>
+    <key>SuccessfulExit</key>
+    <false/>
+  </dict>
+
+  <!-- Minimum seconds between launches (prevents rapid-fire restarts) -->
+  <key>ThrottleInterval</key>
+  <integer>300</integer>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+    <key>HOME</key>
+    <string>/Users/YOURNAME</string>
+  </dict>
+
+  <key>StandardOutPath</key>
+  <string>/path/to/gmail-classifier/logs/launchd-work-stdout.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>/path/to/gmail-classifier/logs/launchd-work-stderr.log</string>
+
+  <key>RunAtLoad</key>
+  <false/>
+</dict>
+</plist>

@@ -17,17 +17,22 @@ DATA_DIR = CANONICAL_ROOT / 'data'
 SCRIPTS_DIR = CANONICAL_ROOT / 'scripts'
 # Split rules: base (committed, public) + personal (gitignored, private).
 # Legacy monolithic file is still supported as a fallback.
+# These can be overridden via --profile.
 RULES_BASE_FILE     = SCRIPTS_DIR / 'classification_rules.base.json'
 RULES_PERSONAL_FILE = SCRIPTS_DIR / 'classification_rules.personal.json'
 RULES_FILE          = SCRIPTS_DIR / 'classification_rules.json'  # legacy fallback
+
+# Profile-specific rules override (set by --profile flag at runtime)
+_PROFILE_RULES_FILE = None
 
 def load_classification_rules() -> Dict:
     """Load rules, merging personal (private) on top of base (public).
 
     Resolution order:
-      1. classification_rules.base.json    — committed, shareable domain/pattern rules
-      2. classification_rules.personal.json — gitignored, personal sender overrides
-      Personal sender_rules are prepended so they match first (first-match-wins).
+      1. If a profile-specific rules file is set, use it as the personal layer.
+      2. classification_rules.base.json    — committed, shareable domain/pattern rules
+      3. classification_rules.personal.json — gitignored, personal sender overrides
+      Personal/profile sender_rules are prepended so they match first (first-match-wins).
       Falls back to legacy classification_rules.json if split files don't exist.
     """
     empty = {
@@ -39,15 +44,23 @@ def load_classification_rules() -> Dict:
         'spam_patterns': [],
     }
 
+    # Determine which personal/profile rules file to use
+    profile_rules = _PROFILE_RULES_FILE or RULES_PERSONAL_FILE
+
     if RULES_BASE_FILE.exists():
         with open(RULES_BASE_FILE, 'r') as f:
             merged = json.load(f)
-        # Prepend personal sender rules so they take priority
-        if RULES_PERSONAL_FILE.exists():
-            with open(RULES_PERSONAL_FILE, 'r') as f:
+        # Prepend profile/personal sender rules so they take priority
+        if profile_rules and profile_rules.exists():
+            with open(profile_rules, 'r') as f:
                 personal = json.load(f)
             personal_rules = [r for r in personal.get('sender_rules', []) if isinstance(r, dict)]
             merged['sender_rules'] = personal_rules + merged.get('sender_rules', [])
+            # Merge whitelist/blacklist domains from profile
+            for key in ('whitelist_domains', 'blacklist_domains'):
+                extra = personal.get(key, [])
+                if extra:
+                    merged[key] = list(set(merged.get(key, []) + extra))
         return merged
 
     # Legacy fallback
@@ -319,6 +332,17 @@ def classify_email(email: Dict, rules: Dict) -> Dict:
             'label': None,
             'confidence': 0.80,
             'reasoning': f"Unread for {age_days} days — stale, auto-archiving"
+        }
+
+    # Personal sender domains get higher confidence — real people emailing you
+    if any(domain.endswith(pd) for pd in PERSONAL_DOMAINS):
+        return {
+            'message_id': message_id,
+            'thread_id': thread_id,
+            'suggested_action': 'keep',
+            'label': None,
+            'confidence': 0.75,
+            'reasoning': f"Personal sender ({domain}) — keep"
         }
 
     # Default: uncertain, keep for manual review
@@ -803,7 +827,10 @@ def classify_batch(input_csv: Path, output_json: Path, with_body: bool = False,
             print(f"    - {d['reasoning']} (confidence: {d['confidence']})")
 
 def main():
+    from profile_loader import add_profile_arg, load_profile
+
     parser = argparse.ArgumentParser(description='Classify emails from CSV')
+    add_profile_arg(parser)
     parser.add_argument('--input', required=True, help='Input CSV file')
     parser.add_argument('--output', required=True, help='Output JSON file')
     parser.add_argument('--with-body', action='store_true',
@@ -811,6 +838,12 @@ def main():
     parser.add_argument('--with-ai', action='store_true',
                         help='Use Claude Haiku for emails still uncertain after body pass (requires ANTHROPIC_API_KEY)')
     args = parser.parse_args()
+
+    # Apply profile overrides
+    global _PROFILE_RULES_FILE, CREDENTIALS_FILE, TOKEN_FILE
+    if args.profile:
+        profile = load_profile(args.profile)
+        _PROFILE_RULES_FILE = profile['rules_path']
 
     input_csv = Path(args.input)
     output_json = Path(args.output)

@@ -30,18 +30,29 @@ TOKEN_FILE = CANONICAL_ROOT / 'token.pickle'
 DATA_DIR = CANONICAL_ROOT / 'data'
 
 def authenticate():
-    """Authenticate with Gmail API using OAuth."""
+    """Authenticate with Gmail API using OAuth.
+    Supports both pickle (.pickle) and JSON (.json) token formats."""
     creds = None
 
     # Token file stores the user's access and refresh tokens
     if TOKEN_FILE.exists():
-        with open(TOKEN_FILE, 'rb') as token:
-            creds = pickle.load(token)
+        if str(TOKEN_FILE).endswith('.json'):
+            # Don't enforce scope — gmail.modify is a superset of gmail.readonly
+            creds = Credentials.from_authorized_user_file(str(TOKEN_FILE))
+        else:
+            with open(TOKEN_FILE, 'rb') as token:
+                creds = pickle.load(token)
 
     # If no valid credentials, let the user log in
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
+            # Save refreshed token
+            if str(TOKEN_FILE).endswith('.json'):
+                TOKEN_FILE.write_text(creds.to_json())
+            else:
+                with open(TOKEN_FILE, 'wb') as token:
+                    pickle.dump(creds, token)
         else:
             if not CREDENTIALS_FILE.exists():
                 print(f"ERROR: {CREDENTIALS_FILE} not found!")
@@ -52,9 +63,12 @@ def authenticate():
                 str(CREDENTIALS_FILE), SCOPES)
             creds = flow.run_local_server(port=0)
 
-        # Save credentials for next run
-        with open(TOKEN_FILE, 'wb') as token:
-            pickle.dump(creds, token)
+            # Save credentials for next run
+            if str(TOKEN_FILE).endswith('.json'):
+                TOKEN_FILE.write_text(creds.to_json())
+            else:
+                with open(TOKEN_FILE, 'wb') as token:
+                    pickle.dump(creds, token)
 
     return build('gmail', 'v1', credentials=creds)
 
@@ -250,7 +264,10 @@ def save_to_csv(emails: List[Dict], output_file: Path):
     print(f"Saved {len(emails)} emails to {output_file}")
 
 def main():
+    from profile_loader import add_profile_arg, load_profile
+
     parser = argparse.ArgumentParser(description='Fetch unread Gmail metadata')
+    add_profile_arg(parser)
     parser.add_argument('--batch', default='001', help='Batch number (e.g., 001)')
     parser.add_argument('--limit', type=int, default=500, help='Max emails to fetch')
     parser.add_argument('--offset', type=int, default=0, help='Skip first N emails')
@@ -258,13 +275,22 @@ def main():
     parser.add_argument('--after', help='Only emails after this date (YYYY/MM/DD, Gmail format)')
     args = parser.parse_args()
 
+    # Apply profile overrides
+    global CREDENTIALS_FILE, TOKEN_FILE, DATA_DIR
+    if args.profile:
+        profile = load_profile(args.profile)
+        CREDENTIALS_FILE = profile['credentials_path']
+        TOKEN_FILE = profile['token_readonly']
+        DATA_DIR = profile['data_path']
+
     # Authenticate
     service = authenticate()
 
     # Fetch emails
+    limit = args.limit
     emails = fetch_unread_emails(
         service,
-        limit=args.limit,
+        limit=limit,
         offset=args.offset,
         before=args.before,
         after=args.after,
@@ -275,6 +301,7 @@ def main():
         return
 
     # Save to CSV
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
     output_file = DATA_DIR / f"batch-{args.batch}.csv"
     save_to_csv(emails, output_file)
 
