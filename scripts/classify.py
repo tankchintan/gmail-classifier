@@ -382,17 +382,32 @@ BODY_RECRUITER_RE = re.compile(
 )
 
 
+_PROFILE_TOKEN_PATH = None
+
 def _gmail_service():
-    """Lazy-load Gmail service using the existing read-only token."""
-    import importlib.util, sys
-    # Import authenticate from fetch_unread without executing its main()
-    spec = importlib.util.spec_from_file_location(
-        'fetch_unread',
-        str(CANONICAL_ROOT / 'scripts' / 'fetch_unread.py'),
-    )
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
-    return mod.authenticate()
+    """Lazy-load Gmail service using the profile's read-only token."""
+    import pickle
+    from google.auth.transport.requests import Request
+    from google.oauth2.credentials import Credentials
+    from googleapiclient.discovery import build
+
+    token_path = _PROFILE_TOKEN_PATH or (CANONICAL_ROOT / 'token.pickle')
+    creds = None
+
+    if token_path.exists():
+        if str(token_path).endswith('.json'):
+            creds = Credentials.from_authorized_user_file(str(token_path))
+        else:
+            with open(token_path, 'rb') as f:
+                creds = pickle.load(f)
+
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            raise RuntimeError(f"Token not valid at {token_path}")
+
+    return build('gmail', 'v1', credentials=creds)
 
 
 def _decode_part(part) -> str:
@@ -868,10 +883,11 @@ def main():
     args = parser.parse_args()
 
     # Apply profile overrides
-    global _PROFILE_RULES_FILE, CREDENTIALS_FILE, TOKEN_FILE
+    global _PROFILE_RULES_FILE, _PROFILE_TOKEN_PATH
     if args.profile:
         profile = load_profile(args.profile)
         _PROFILE_RULES_FILE = profile['rules_path']
+        _PROFILE_TOKEN_PATH = profile['token_readonly']
 
     input_csv = Path(args.input)
     output_json = Path(args.output)
