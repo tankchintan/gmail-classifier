@@ -39,7 +39,7 @@ KEY_POINTS_RE = re.compile(
 
 
 def _gmail_service(profile):
-    """Build Gmail service from profile's readonly token."""
+    """Build Gmail service from profile's readonly token. Supports pickle and JSON."""
     import pickle
     from google.auth.transport.requests import Request
     from google.oauth2.credentials import Credentials
@@ -49,14 +49,20 @@ def _gmail_service(profile):
     creds = None
 
     if token_path.exists():
-        with open(token_path, 'rb') as f:
-            creds = pickle.load(f)
+        if str(token_path).endswith('.json'):
+            creds = Credentials.from_authorized_user_file(str(token_path))
+        else:
+            with open(token_path, 'rb') as f:
+                creds = pickle.load(f)
 
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
-            with open(token_path, 'wb') as f:
-                pickle.dump(creds, f)
+            if str(token_path).endswith('.json'):
+                token_path.write_text(creds.to_json())
+            else:
+                with open(token_path, 'wb') as f:
+                    pickle.dump(creds, f)
         else:
             print(f"ERROR: Token not found or invalid at {token_path}")
             print("Run test_auth.py with the appropriate profile first.")
