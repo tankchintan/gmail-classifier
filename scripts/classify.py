@@ -499,7 +499,7 @@ def classify_with_body(classification: Dict, body: str) -> Dict:
     # override any archive/noise classification back to keep.
     # This catches GUS "mentioned you in a post" where @ctank is in the body.
     body_lower = body.lower()
-    if 'ctank' in body_lower or 'chintan tank' in body_lower:
+    if 'ctank' in body_lower or 'chintan tank' in body_lower or '@chintan' in body_lower:
         if classification.get('suggested_action') in ('archive', 'label') and \
            classification.get('archive_after_label', False):
             return {**classification,
