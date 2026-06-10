@@ -495,6 +495,21 @@ def classify_with_body(classification: Dict, body: str) -> Dict:
     if not body:
         return classification
 
+    # Direct mention check: if body contains the user's handle/name,
+    # override any archive/noise classification back to keep.
+    # This catches GUS "mentioned you in a post" where @ctank is in the body.
+    body_lower = body.lower()
+    if 'ctank' in body_lower or 'chintan tank' in body_lower:
+        if classification.get('suggested_action') in ('archive', 'label') and \
+           classification.get('archive_after_label', False):
+            return {**classification,
+                    'suggested_action': 'keep',
+                    'label': None,
+                    'archive_after_label': False,
+                    'mark_read': False,
+                    'confidence': 0.90,
+                    'reasoning': 'Body mentions ctank/Chintan Tank directly — keep'}
+
     has_unsub = bool(BODY_UNSUBSCRIBE_RE.search(body))
     has_transactional = bool(BODY_TRANSACTIONAL_RE.search(body))
     has_promo = bool(BODY_PROMO_RE.search(body))
@@ -535,7 +550,14 @@ def classify_with_body(classification: Dict, body: str) -> Dict:
                 'confidence': 0.80,
                 'reasoning': 'Body contains promotional content — archive'}
 
-    # Body didn't help — bump confidence slightly and keep original action
+    # Body didn't find a reason to override — if the action was already
+    # archive/label (rule decided), confirm it by bumping above execute threshold.
+    # If action was 'keep' (uncertain), bump slightly but stay below threshold.
+    if classification.get('suggested_action') in ('archive', 'label'):
+        return {**classification,
+                'confidence': max(conf, 0.82),
+                'reasoning': reasoning + ' (body checked, confirmed)'}
+
     return {**classification,
             'confidence': min(conf + 0.10, 0.70),
             'reasoning': reasoning + ' (body checked, no clear signal)'}
