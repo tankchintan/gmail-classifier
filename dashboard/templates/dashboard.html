@@ -111,6 +111,7 @@
             <button class="ai-tab-btn px-4 py-2 text-slate-600" data-aitab="jobs">💼 Jobs <span id="leadsCount" class="ml-1 opacity-70"></span></button>
             <button class="ai-tab-btn px-4 py-2 text-slate-600" data-aitab="meetings">📝 Meetings <span id="meetingsCount" class="ml-1 opacity-70"></span></button>
             <button class="ai-tab-btn px-4 py-2 text-slate-600" data-aitab="quarantine">🛡 Quarantine <span id="quarantineCount" class="ml-1 opacity-70"></span></button>
+            <button class="ai-tab-btn px-4 py-2 text-slate-600" data-aitab="usps">📬 Mail <span id="uspsCount" class="ml-1 opacity-70"></span></button>
           </div>
         </div>
 
@@ -154,6 +155,16 @@
           </div>
           <div class="px-6 py-3 bg-slate-50 border-t border-slate-100">
             <p class="text-[11px] text-slate-400">Run <code class="bg-slate-100 px-1 rounded">python scripts/extractors/meeting_digest.py --profile work</code> to refresh</p>
+          </div>
+        </div>
+
+        <!-- USPS Mail pane -->
+        <div id="aitab-usps" class="hidden">
+          <div id="uspsBody" class="divide-y divide-slate-100 max-h-96 overflow-auto nice-scroll">
+            <div class="px-6 py-10 text-center text-slate-400 text-sm">Loading…</div>
+          </div>
+          <div class="px-6 py-3 bg-slate-50 border-t border-slate-100">
+            <p class="text-[11px] text-slate-400">Run <code class="bg-slate-100 px-1 rounded">python scripts/extractors/usps_digest.py</code> to refresh</p>
           </div>
         </div>
 
@@ -1155,6 +1166,69 @@
       loadAll();
     });
 
+    // ─── USPS Mail ─────────────────────────────────────────────────────────
+    async function loadUsps() {
+      const res = await fetch(api('/api/usps'));
+      if (!res.ok) throw new Error('GET /api/usps failed');
+      const data = await res.json();
+      const countEl = document.getElementById('uspsCount');
+      const body = document.getElementById('uspsBody');
+      body.innerHTML = '';
+
+      const digests = data.digests || [];
+      const packages = data.packages || [];
+      const totalMail = digests.reduce((s, d) => s + (d.mail_count || 0), 0);
+      const totalPkgs = packages.length;
+
+      if (!digests.length && !packages.length) {
+        countEl.textContent = '(0)';
+        body.innerHTML = '<div class="px-6 py-10 text-center text-slate-400 text-sm">No USPS data. Run the extractor to populate.</div>';
+        return;
+      }
+
+      countEl.textContent = totalPkgs > 0 ? '(' + totalPkgs + ' pkg)' : '(' + totalMail + ')';
+
+      // Packages section first (most urgent)
+      if (packages.length) {
+        const hdr = document.createElement('div');
+        hdr.className = 'px-6 py-2 bg-slate-50 text-xs font-semibold text-slate-500 uppercase tracking-wide';
+        hdr.textContent = 'Packages';
+        body.appendChild(hdr);
+        packages.forEach(p => {
+          const row = document.createElement('div');
+          row.className = 'px-6 py-3';
+          row.innerHTML = '<div class="flex items-center gap-2">' +
+            '<span class="inline-block rounded-full bg-amber-100 text-amber-700 px-2 py-0.5 text-xs font-semibold">📦 ' + esc(p.expected_delivery || p.date) + '</span>' +
+            (p.delivery_by ? '<span class="text-xs text-slate-500">by ' + esc(p.delivery_by) + '</span>' : '') +
+            '</div>' +
+            '<div class="text-xs text-slate-500 mt-1 font-mono">' + esc(p.tracking_number || '') + '</div>';
+          body.appendChild(row);
+        });
+      }
+
+      // Mail digests
+      if (digests.length) {
+        const hdr = document.createElement('div');
+        hdr.className = 'px-6 py-2 bg-slate-50 text-xs font-semibold text-slate-500 uppercase tracking-wide';
+        hdr.textContent = 'Physical Mail (last 7 days)';
+        body.appendChild(hdr);
+        digests.forEach(d => {
+          if (!d.mail_count) return;
+          const row = document.createElement('div');
+          row.className = 'px-6 py-3 flex items-start gap-3';
+          const senderText = d.mail_senders && d.mail_senders.length
+            ? d.mail_senders.map(s => esc(s)).join(', ')
+            : 'unknown senders';
+          row.innerHTML = '<span class="text-xs text-slate-400 w-16 shrink-0">' + esc(d.date.slice(5)) + '</span>' +
+            '<div>' +
+              '<span class="inline-block rounded-full bg-blue-100 text-blue-700 px-2 py-0.5 text-xs font-semibold mr-2">' + d.mail_count + ' piece' + (d.mail_count !== 1 ? 's' : '') + '</span>' +
+              '<span class="text-xs text-slate-600">' + senderText + '</span>' +
+            '</div>';
+          body.appendChild(row);
+        });
+      }
+    }
+
     // ─── Proofpoint quarantine ──────────────────────────────────────────────
     async function loadProofpoint() {
       const res = await fetch(api('/api/proofpoint'));
@@ -1208,6 +1282,7 @@
         loadSchoolEvents().catch(e => errs.push('events: ' + e.message)),
         loadJobLeads().catch(e => errs.push('jobs: ' + e.message)),
         loadProofpoint().catch(e => errs.push('quarantine: ' + e.message)),
+        loadUsps().catch(e => errs.push('usps: ' + e.message)),
         loadStats().catch(e => errs.push('stats: ' + e.message)),
       ]);
       // Show/hide AI Insight tabs based on which have data
@@ -1216,6 +1291,7 @@
         jobs: document.getElementById('leadsCount').textContent,
         meetings: document.getElementById('meetingsCount').textContent,
         quarantine: document.getElementById('quarantineCount').textContent,
+        usps: document.getElementById('uspsCount').textContent,
       };
       let firstVisible = null;
       document.querySelectorAll('#aiTabBar .ai-tab-btn').forEach(btn => {

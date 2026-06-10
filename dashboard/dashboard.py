@@ -910,6 +910,18 @@ def do_rescue(message_id, batch):
     return 200, {"ok": True, "message_id": message_id}
 
 
+def build_usps(profile: str = None):
+    """Read the usps-deliveries.json produced by the extractor."""
+    data_dir = _profile_data_dir(profile)
+    path = data_dir / "usps-deliveries.json"
+    if not path.exists():
+        return {"digests": [], "packages": []}
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {"digests": [], "packages": []}
+
+
 def build_proofpoint(profile: str = None):
     """Read the proofpoint-quarantine.json produced by the extractor."""
     data_dir = _profile_data_dir(profile)
@@ -995,6 +1007,8 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 self._send_json(build_school_events(days, profile))
             elif path == "/api/proofpoint":
                 self._send_json(build_proofpoint(profile))
+            elif path == "/api/usps":
+                self._send_json(build_usps(profile))
             else:
                 self._send_json({"error": "not found"}, 404)
         except Exception as exc:  # noqa: BLE001 - never crash the server
