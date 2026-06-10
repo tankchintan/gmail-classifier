@@ -110,6 +110,7 @@
             <button class="ai-tab-btn px-4 py-2 text-slate-600" data-aitab="school">📅 School <span id="eventsCount" class="ml-1 opacity-70"></span></button>
             <button class="ai-tab-btn px-4 py-2 text-slate-600" data-aitab="jobs">💼 Jobs <span id="leadsCount" class="ml-1 opacity-70"></span></button>
             <button class="ai-tab-btn px-4 py-2 text-slate-600" data-aitab="meetings">📝 Meetings <span id="meetingsCount" class="ml-1 opacity-70"></span></button>
+            <button class="ai-tab-btn px-4 py-2 text-slate-600" data-aitab="quarantine">🛡 Quarantine <span id="quarantineCount" class="ml-1 opacity-70"></span></button>
           </div>
         </div>
 
@@ -153,6 +154,16 @@
           </div>
           <div class="px-6 py-3 bg-slate-50 border-t border-slate-100">
             <p class="text-[11px] text-slate-400">Run <code class="bg-slate-100 px-1 rounded">python scripts/extractors/meeting_digest.py --profile work</code> to refresh</p>
+          </div>
+        </div>
+
+        <!-- Quarantine pane -->
+        <div id="aitab-quarantine" class="hidden">
+          <div id="quarantineBody" class="divide-y divide-slate-100 max-h-96 overflow-auto nice-scroll">
+            <div class="px-6 py-10 text-center text-slate-400 text-sm">Loading…</div>
+          </div>
+          <div class="px-6 py-3 bg-slate-50 border-t border-slate-100">
+            <p class="text-[11px] text-slate-400">Run <code class="bg-slate-100 px-1 rounded">python scripts/extractors/proofpoint_digest.py --profile work</code> to refresh</p>
           </div>
         </div>
       </section>
@@ -1144,6 +1155,46 @@
       loadAll();
     });
 
+    // ─── Proofpoint quarantine ──────────────────────────────────────────────
+    async function loadProofpoint() {
+      const res = await fetch(api('/api/proofpoint'));
+      if (!res.ok) throw new Error('GET /api/proofpoint failed');
+      const data = await res.json();
+      const countEl = document.getElementById('quarantineCount');
+      const body = document.getElementById('quarantineBody');
+      body.innerHTML = '';
+
+      if (!data.digests || !data.digests.length) {
+        countEl.textContent = '(0)';
+        body.innerHTML = '<div class="px-6 py-10 text-center text-slate-400 text-sm">No quarantine data. Run the extractor to populate.</div>';
+        return;
+      }
+
+      countEl.textContent = '(' + data.total_blocked + ')';
+      data.digests.forEach(d => {
+        const section = document.createElement('div');
+        section.className = 'px-6 py-3';
+        const header = document.createElement('div');
+        header.className = 'flex items-center gap-2 mb-2';
+        header.innerHTML = '<span class="text-xs font-medium text-slate-500">' + esc(d.date) + '</span>' +
+          '<span class="inline-block rounded-full bg-red-100 text-red-700 px-2 py-0.5 text-xs font-semibold">' + d.count + ' blocked</span>';
+        section.appendChild(header);
+
+        if (d.quarantined && d.quarantined.length) {
+          const list = document.createElement('div');
+          list.className = 'space-y-1 ml-2';
+          d.quarantined.forEach(q => {
+            const row = document.createElement('div');
+            row.className = 'text-xs text-slate-600';
+            row.innerHTML = '<span class="font-mono text-slate-400">' + esc(q.sender) + '</span> <span class="text-slate-700">' + esc(q.subject) + '</span>';
+            list.appendChild(row);
+          });
+          section.appendChild(list);
+        }
+        body.appendChild(section);
+      });
+    }
+
     // ─── Load all ─────────────────────────────────────────────────────────────
     async function loadAll() {
       document.getElementById('globalError').classList.add('hidden');
@@ -1156,6 +1207,7 @@
         loadDeletions().catch(e => errs.push('deletions: ' + e.message)),
         loadSchoolEvents().catch(e => errs.push('events: ' + e.message)),
         loadJobLeads().catch(e => errs.push('jobs: ' + e.message)),
+        loadProofpoint().catch(e => errs.push('quarantine: ' + e.message)),
         loadStats().catch(e => errs.push('stats: ' + e.message)),
       ]);
       // Show/hide AI Insight tabs based on which have data
@@ -1163,6 +1215,7 @@
         school: document.getElementById('eventsCount').textContent,
         jobs: document.getElementById('leadsCount').textContent,
         meetings: document.getElementById('meetingsCount').textContent,
+        quarantine: document.getElementById('quarantineCount').textContent,
       };
       let firstVisible = null;
       document.querySelectorAll('#aiTabBar .ai-tab-btn').forEach(btn => {

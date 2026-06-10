@@ -910,6 +910,20 @@ def do_rescue(message_id, batch):
     return 200, {"ok": True, "message_id": message_id}
 
 
+def build_proofpoint(profile: str = None):
+    """Read the proofpoint-quarantine.json produced by the extractor."""
+    data_dir = _profile_data_dir(profile)
+    path = data_dir / "proofpoint-quarantine.json"
+    if not path.exists():
+        return {"digests": [], "total_blocked": 0}
+    try:
+        digests = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {"digests": [], "total_blocked": 0}
+    total_blocked = sum(d.get("count", 0) for d in digests)
+    return {"digests": digests, "total_blocked": total_blocked}
+
+
 # ---------------------------------------------------------------------------
 # HTTP handler
 # ---------------------------------------------------------------------------
@@ -979,6 +993,8 @@ class DashboardHandler(BaseHTTPRequestHandler):
             elif path == "/api/school-events":
                 days = int(params.get("days", 60))
                 self._send_json(build_school_events(days, profile))
+            elif path == "/api/proofpoint":
+                self._send_json(build_proofpoint(profile))
             else:
                 self._send_json({"error": "not found"}, 404)
         except Exception as exc:  # noqa: BLE001 - never crash the server
