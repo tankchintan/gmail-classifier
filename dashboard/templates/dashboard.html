@@ -1136,7 +1136,13 @@
       }
     }
 
-    document.getElementById('digestProfile').addEventListener('change', loadAll);
+    document.getElementById('digestProfile').addEventListener('change', () => {
+      const p = document.getElementById('digestProfile').value;
+      const url = new URL(window.location);
+      url.searchParams.set('profile', p);
+      window.history.replaceState(null, '', url);
+      loadAll();
+    });
 
     // ─── Load all ─────────────────────────────────────────────────────────────
     async function loadAll() {
@@ -1189,6 +1195,10 @@
       renderDeletions();
     });
     document.getElementById('refreshBtn').addEventListener('click', loadAll);
+
+    // Sync dropdown from URL on page load
+    const urlProfile = new URL(window.location).searchParams.get('profile');
+    if (urlProfile) document.getElementById('digestProfile').value = urlProfile;
 
     loadAll();
   </script>
