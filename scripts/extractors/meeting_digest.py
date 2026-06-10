@@ -94,9 +94,22 @@ def _decode_body(msg) -> str:
     return msg.get('snippet', '')
 
 
+GEMINI_SUMMARY_RE = re.compile(
+    r'Summary\s*\n(.+?)(?:\n\n|\n[A-Z])',
+    re.S
+)
+
 def _extract_summary(body: str, max_length: int = 500) -> str:
     """Extract meeting summary from body text."""
-    # Try structured extraction first
+    # Gemini format: "Summary\n<paragraph text>\n\n<next section>"
+    match = GEMINI_SUMMARY_RE.search(body)
+    if match:
+        summary = match.group(1).strip().replace('\n', ' ')
+        if len(summary) > max_length:
+            summary = summary[:max_length] + '...'
+        return summary
+
+    # Generic format: "Key Points:" / "Summary:" followed by bullets
     match = KEY_POINTS_RE.search(body)
     if match:
         points = match.group(1).strip()
@@ -104,8 +117,10 @@ def _extract_summary(body: str, max_length: int = 500) -> str:
             points = points[:max_length] + '...'
         return points
 
-    # Fallback: take first meaningful paragraph (skip greetings/headers)
+    # Fallback: skip boilerplate header lines, take first real paragraph
     lines = body.strip().split('\n')
+    skip_patterns = ['notes from', 'these notes have been', 'open meeting',
+                     'the content was auto-generated', 'may contain']
     content_lines = []
     for line in lines:
         line = line.strip()
@@ -113,8 +128,9 @@ def _extract_summary(body: str, max_length: int = 500) -> str:
             if content_lines:
                 break
             continue
-        # Skip short header-like lines
-        if len(line) < 20 and ':' in line:
+        if any(p in line.lower() for p in skip_patterns):
+            continue
+        if len(line) < 20 and not content_lines:
             continue
         content_lines.append(line)
 

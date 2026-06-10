@@ -172,15 +172,23 @@ def execute_action(service, action: Dict, dry_run: bool = False) -> Dict:
 
     try:
         if action_type == 'archive':
-            # Remove INBOX label
-            service.users().messages().modify(
-                userId='me',
-                id=message_id,
-                body={'removeLabelIds': ['INBOX']}
-            ).execute()
+            # Remove INBOX label from entire thread so the thread disappears from inbox
+            thread_id = action.get('thread_id', '')
+            if thread_id:
+                service.users().threads().modify(
+                    userId='me',
+                    id=thread_id,
+                    body={'removeLabelIds': ['INBOX']}
+                ).execute()
+            else:
+                service.users().messages().modify(
+                    userId='me',
+                    id=message_id,
+                    body={'removeLabelIds': ['INBOX']}
+                ).execute()
 
             log_entry['status'] = 'success'
-            log_entry['details'] = 'Removed INBOX label (archived)'
+            log_entry['details'] = 'Removed INBOX label (archived thread)'
 
         elif action_type == 'delete':
             # Move to trash
@@ -208,15 +216,30 @@ def execute_action(service, action: Dict, dry_run: bool = False) -> Dict:
             # Respect archive_after_label: only remove INBOX if the rule said so.
             # A label WITHOUT archive_after_label means "tag it but keep it visible".
             archive_after = action.get('archive_after_label', False)
+            mark_read = action.get('mark_read', False)
             body = {'addLabelIds': [label_id]}
+            remove_labels = []
             if archive_after:
-                body['removeLabelIds'] = ['INBOX']
+                remove_labels.append('INBOX')
+            if mark_read:
+                remove_labels.append('UNREAD')
+            if remove_labels:
+                body['removeLabelIds'] = remove_labels
 
-            service.users().messages().modify(
-                userId='me',
-                id=message_id,
-                body=body
-            ).execute()
+            # When archiving, use thread-level modify so entire thread leaves inbox
+            thread_id = action.get('thread_id', '')
+            if archive_after and thread_id:
+                service.users().threads().modify(
+                    userId='me',
+                    id=thread_id,
+                    body=body
+                ).execute()
+            else:
+                service.users().messages().modify(
+                    userId='me',
+                    id=message_id,
+                    body=body
+                ).execute()
 
             log_entry['status'] = 'success'
             log_entry['label_applied'] = label_name

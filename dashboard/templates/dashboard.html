@@ -106,8 +106,8 @@
             <h2 class="text-lg font-semibold text-slate-900">✨ AI Insights</h2>
             <p class="text-xs text-slate-400 mt-1">Extracted from your emails by Claude Haiku · updated daily</p>
           </div>
-          <div class="flex rounded-lg border border-slate-200 overflow-hidden text-xs font-medium">
-            <button class="ai-tab-btn active px-4 py-2 bg-slate-900 text-white" data-aitab="school">📅 School <span id="eventsCount" class="ml-1 opacity-70"></span></button>
+          <div id="aiTabBar" class="flex rounded-lg border border-slate-200 overflow-hidden text-xs font-medium">
+            <button class="ai-tab-btn px-4 py-2 text-slate-600" data-aitab="school">📅 School <span id="eventsCount" class="ml-1 opacity-70"></span></button>
             <button class="ai-tab-btn px-4 py-2 text-slate-600" data-aitab="jobs">💼 Jobs <span id="leadsCount" class="ml-1 opacity-70"></span></button>
             <button class="ai-tab-btn px-4 py-2 text-slate-600" data-aitab="meetings">📝 Meetings <span id="meetingsCount" class="ml-1 opacity-70"></span></button>
           </div>
@@ -1152,6 +1152,30 @@
         loadJobLeads().catch(e => errs.push('jobs: ' + e.message)),
         loadStats().catch(e => errs.push('stats: ' + e.message)),
       ]);
+      // Show/hide AI Insight tabs based on which have data
+      const tabData = {
+        school: document.getElementById('eventsCount').textContent,
+        jobs: document.getElementById('leadsCount').textContent,
+        meetings: document.getElementById('meetingsCount').textContent,
+      };
+      let firstVisible = null;
+      document.querySelectorAll('#aiTabBar .ai-tab-btn').forEach(btn => {
+        const tab = btn.dataset.aitab;
+        const hasData = tabData[tab] && tabData[tab] !== 'none' && tabData[tab] !== '(0)' && tabData[tab] !== 'none yet';
+        btn.style.display = hasData ? '' : 'none';
+        if (hasData && !firstVisible) firstVisible = btn;
+      });
+      // Auto-select first visible tab
+      if (firstVisible) {
+        document.querySelectorAll('#aiTabBar .ai-tab-btn').forEach(b => {
+          b.classList.remove('active', 'bg-slate-900', 'text-white');
+          b.classList.add('text-slate-600');
+        });
+        firstVisible.classList.add('active', 'bg-slate-900', 'text-white');
+        firstVisible.classList.remove('text-slate-600');
+        document.querySelectorAll('[id^="aitab-"]').forEach(el => el.classList.add('hidden'));
+        document.getElementById('aitab-' + firstVisible.dataset.aitab).classList.remove('hidden');
+      }
       if (errs.length) {
         const el = document.getElementById('globalError');
         el.textContent = 'Errors: ' + errs.join(' | ');

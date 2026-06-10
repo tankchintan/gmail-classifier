@@ -13,6 +13,9 @@ scripts/classification_rules.json
 profiles/personal.json
 profiles/work.json
 
+# Private config repo (has its own git remote)
+private/
+
 # Personal notes and temp files
 linkedin-article-raw-notes.md
 tmp/

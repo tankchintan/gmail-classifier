@@ -108,7 +108,7 @@ def _apply_sender_rule(rule: Dict, message_id: str, thread_id: str) -> Dict:
     """Convert a matched rule into a classification result."""
     action = rule['action']
     label = rule.get('label')
-    return {
+    result = {
         'message_id': message_id,
         'thread_id': thread_id,
         'suggested_action': action,
@@ -117,6 +117,9 @@ def _apply_sender_rule(rule: Dict, message_id: str, thread_id: str) -> Dict:
         'confidence': rule.get('confidence', 0.85),
         'reasoning': rule.get('reasoning', f'Matched sender rule: {rule.get("from_match")}'),
     }
+    if rule.get('mark_read'):
+        result['mark_read'] = True
+    return result
 
 
 def classify_email(email: Dict, rules: Dict) -> Dict:
