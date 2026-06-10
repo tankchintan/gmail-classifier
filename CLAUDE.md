@@ -64,7 +64,7 @@ The AI shows you the exact list first, waits for confirmation, then executes wit
 ### Run the full daily pipeline
 > "Run the daily pipeline"
 
-Executes `./daily_run.sh` and reports the summary.
+Executes `./daily_run_profile.sh personal` and reports the summary.
 
 ### Add a classification rule
 > "All emails from @newsletter.substack.com should be archived after 14 days"

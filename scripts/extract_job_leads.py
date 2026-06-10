@@ -20,8 +20,8 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
 CANONICAL_ROOT = Path(__file__).parent.parent
-DATA_DIR = CANONICAL_ROOT / 'data'
-LOGS_DIR = CANONICAL_ROOT / 'logs'
+DATA_DIR = CANONICAL_ROOT / 'data' / 'personal'
+LOGS_DIR = CANONICAL_ROOT / 'logs' / 'personal'
 LEADS_FILE = DATA_DIR / 'job-leads.json'
 
 EXTRACT_PROMPT = """\
@@ -179,10 +179,20 @@ def save_leads(leads: dict):
 
 
 def main():
+    from profile_loader import add_profile_arg, load_profile
+
     parser = argparse.ArgumentParser()
+    add_profile_arg(parser)
     parser.add_argument('--reprocess', action='store_true',
                         help='Re-extract even if already processed')
     args = parser.parse_args()
+
+    global DATA_DIR, LOGS_DIR, LEADS_FILE
+    if args.profile:
+        profile = load_profile(args.profile)
+        DATA_DIR = profile['data_path']
+        LOGS_DIR = profile['logs_path']
+        LEADS_FILE = DATA_DIR / 'job-leads.json'
 
     print('=== Job Leads Extractor ===')
 

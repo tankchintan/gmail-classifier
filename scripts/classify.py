@@ -13,7 +13,7 @@ from datetime import datetime
 from typing import List, Dict, Optional
 
 CANONICAL_ROOT = Path(__file__).parent.parent
-DATA_DIR = CANONICAL_ROOT / 'data'
+DATA_DIR = CANONICAL_ROOT / 'data' / 'personal'
 SCRIPTS_DIR = CANONICAL_ROOT / 'scripts'
 # Split rules: base (committed, public) + personal (gitignored, private).
 # Legacy monolithic file is still supported as a fallback.

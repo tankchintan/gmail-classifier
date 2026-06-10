@@ -27,7 +27,7 @@ PROJECT_ROOT = Path(__file__).parent.parent
 CANONICAL_ROOT = Path(__file__).parent.parent
 CREDENTIALS_FILE = CANONICAL_ROOT / 'credentials.json'
 TOKEN_FILE = CANONICAL_ROOT / 'token.pickle'
-DATA_DIR = CANONICAL_ROOT / 'data'
+DATA_DIR = CANONICAL_ROOT / 'data' / 'personal'
 
 def authenticate():
     """Authenticate with Gmail API using OAuth.
