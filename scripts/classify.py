@@ -81,13 +81,16 @@ def parse_date(date_str: str) -> datetime:
     except:
         return datetime.now()
 
-def _match_sender_rule(rule: Dict, from_email: str, subject: str, age_days: int) -> bool:
+def _match_sender_rule(rule: Dict, from_email: str, subject: str, age_days: int,
+                       from_name: str = '') -> bool:
     """Return True if the rule matches the email. Case-insensitive substring matches."""
-    # Skip comment-only entries (no from_match, no subject_match, no action)
     if 'action' not in rule:
         return False
     from_match = rule.get('from_match', '').lower()
     if from_match and from_match not in from_email:
+        return False
+    from_name_match = rule.get('from_name_match', '').lower()
+    if from_name_match and from_name_match not in from_name.lower():
         return False
     subject_match = rule.get('subject_match', '').lower()
     if subject_match and subject_match not in subject:
@@ -144,7 +147,7 @@ def classify_email(email: Dict, rules: Dict) -> Dict:
 
     # 0. Explicit sender rules (data-driven, FIRST MATCH WINS)
     for rule in rules.get('sender_rules', []):
-        if _match_sender_rule(rule, from_email, subject, age_days):
+        if _match_sender_rule(rule, from_email, subject, age_days, from_name):
             return _apply_sender_rule(rule, message_id, thread_id)
 
     # Default classification
