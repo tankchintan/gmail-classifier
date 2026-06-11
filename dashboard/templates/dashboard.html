@@ -1055,11 +1055,39 @@
 
       // Auto-handled
       digestAutoData = data.auto_handled;
-      document.querySelector('.dig-count[data-count="all"]').textContent = digestAutoData.length || '';
-      document.querySelector('.dig-count[data-count="archive"]').textContent = digestAutoData.filter(h => h.action === 'archive').length || '';
-      document.querySelector('.dig-count[data-count="label"]').textContent = digestAutoData.filter(h => h.action === 'label').length || '';
-      document.querySelector('.dig-count[data-count="delete"]').textContent = digestAutoData.filter(h => h.action === 'delete').length || '';
-      const activeFilter = document.querySelector('.digest-filter.active');
+      const digCounts = {
+        all: digestAutoData.length,
+        archive: digestAutoData.filter(h => h.action === 'archive').length,
+        label: digestAutoData.filter(h => h.action === 'label').length,
+        delete: digestAutoData.filter(h => h.action === 'delete').length,
+      };
+      document.querySelector('.dig-count[data-count="all"]').textContent = digCounts.all || '';
+      document.querySelector('.dig-count[data-count="archive"]').textContent = digCounts.archive || '';
+      document.querySelector('.dig-count[data-count="label"]').textContent = digCounts.label || '';
+      document.querySelector('.dig-count[data-count="delete"]').textContent = digCounts.delete || '';
+
+      // Disable filter pills that have nothing to show
+      document.querySelectorAll('.digest-filter').forEach(btn => {
+        const f = btn.dataset.filter;
+        const disabled = f !== 'all' && !digCounts[f];
+        btn.disabled = disabled;
+        btn.classList.toggle('opacity-40', disabled);
+        btn.classList.toggle('cursor-not-allowed', disabled);
+        btn.classList.toggle('pointer-events-none', disabled);
+      });
+
+      // If the active filter just became empty, fall back to "all"
+      let activeFilter = document.querySelector('.digest-filter.active');
+      if (activeFilter && activeFilter.disabled) {
+        document.querySelectorAll('.digest-filter').forEach(b => {
+          b.classList.remove('active', 'bg-slate-900', 'text-white');
+          b.classList.add('text-slate-600');
+        });
+        const allBtn = document.querySelector('.digest-filter[data-filter="all"]');
+        allBtn.classList.add('active', 'bg-slate-900', 'text-white');
+        allBtn.classList.remove('text-slate-600');
+        activeFilter = allBtn;
+      }
       renderDigestAuto(activeFilter ? activeFilter.dataset.filter : 'all');
 
       // Still in inbox
