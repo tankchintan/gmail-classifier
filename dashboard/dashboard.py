@@ -834,6 +834,7 @@ def build_digest(profile: str = None):
 def build_deletions(profile: str = None):
     batches = discover_batches(profile)
     done = executed_message_ids(profile)  # exclude already-executed (trashed) items
+    approved = load_approved_deletes(profile)
     rows = []
     seen_mids = set()
     for bid in batches:
@@ -861,6 +862,7 @@ def build_deletions(profile: str = None):
                 "age_days": compute_age_days(date_str),
                 "confidence": entry.get("confidence"),
                 "reasoning": entry.get("reasoning") or "",
+                "approved": mid in approved,
             })
     rows.sort(key=lambda r: (r["confidence"] if isinstance(r["confidence"], (int, float)) else 0.0))
     return rows
@@ -908,6 +910,58 @@ def do_rescue(message_id, batch):
         return 400, {"ok": False, "error": f"could not write batch file: {exc}"}
 
     return 200, {"ok": True, "message_id": message_id}
+
+
+def _approved_deletes_path(profile: str = None) -> Path:
+    """Path to the per-profile approved-deletes snapshot file."""
+    return _profile_data_dir(profile) / "delete-approved.json"
+
+
+def load_approved_deletes(profile: str = None) -> set:
+    """Set of message_ids the user has approved for deletion in the next run."""
+    path = _approved_deletes_path(profile)
+    if not path.exists():
+        return set()
+    try:
+        return set(json.loads(path.read_text(encoding="utf-8")))
+    except (OSError, ValueError):
+        return set()
+
+
+def save_approved_deletes(ids: set, profile: str = None):
+    """Persist the approved-deletes snapshot."""
+    path = _approved_deletes_path(profile)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(sorted(ids), indent=2), encoding="utf-8")
+
+
+def do_approve_deletes(message_ids, approve, profile=None):
+    """Add or remove message_ids from the approved-deletes snapshot.
+    Returns (http_status, payload_dict)."""
+    if not isinstance(message_ids, list) or not message_ids:
+        return 400, {"ok": False, "error": "message_ids (non-empty list) required"}
+
+    # Only allow approving IDs that are actually pending deletes right now —
+    # prevents stale/forged IDs from being armed.
+    pending = {r["message_id"] for r in build_deletions(profile)}
+    approved = load_approved_deletes(profile)
+
+    applied = []
+    for mid in message_ids:
+        if approve:
+            if mid in pending:
+                approved.add(mid)
+                applied.append(mid)
+        else:
+            approved.discard(mid)
+            applied.append(mid)
+
+    # Drop any approved IDs that are no longer pending (already deleted/rescued)
+    approved &= pending
+
+    save_approved_deletes(approved, profile)
+    return 200, {"ok": True, "approved_count": len(approved),
+                 "approved": sorted(approved), "applied": applied}
 
 
 def build_usps(profile: str = None):
@@ -1017,9 +1071,9 @@ class DashboardHandler(BaseHTTPRequestHandler):
     def do_POST(self):
         path = self.path.split("?", 1)[0].rstrip("/") or "/"
         try:
-            if path != "/api/rescue":
-                self._send_json({"ok": False, "error": "not found"}, 404)
-                return
+            params = self._parse_qs()
+            profile = params.get("profile") or None
+
             length = int(self.headers.get("Content-Length") or 0)
             raw = self.rfile.read(length) if length else b""
             try:
@@ -1027,8 +1081,20 @@ class DashboardHandler(BaseHTTPRequestHandler):
             except ValueError:
                 self._send_json({"ok": False, "error": "invalid JSON body"}, 400)
                 return
-            status, payload = do_rescue(body.get("message_id"), body.get("batch"))
-            self._send_json(payload, status)
+
+            if path == "/api/rescue":
+                status, payload = do_rescue(body.get("message_id"), body.get("batch"))
+                self._send_json(payload, status)
+            elif path == "/api/approve-deletes":
+                # body: {message_ids: [...], approve: true|false}
+                status, payload = do_approve_deletes(
+                    body.get("message_ids"),
+                    body.get("approve", True),
+                    profile,
+                )
+                self._send_json(payload, status)
+            else:
+                self._send_json({"ok": False, "error": "not found"}, 404)
         except Exception as exc:  # noqa: BLE001
             self._send_json({"ok": False, "error": str(exc)}, 500)
 

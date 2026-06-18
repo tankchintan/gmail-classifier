@@ -107,6 +107,32 @@ for JSON in "$DATA_DIR/batch-"[0-9][0-9][0-9]"-classified.json"; do
 done
 log "  ✅ Executed $TOTAL_NEW new safe actions"
 
+# ── Step 4.5: Execute APPROVED deletes (snapshot safety gate) ──────────────────
+# Only message_ids the user explicitly approved in the dashboard are deleted.
+# The approved snapshot lives at $DATA_DIR/delete-approved.json.
+APPROVED_FILE="$DATA_DIR/delete-approved.json"
+if [ -f "$APPROVED_FILE" ]; then
+  APPROVED_COUNT=$(python3 -c "import json; print(len(json.load(open('$APPROVED_FILE'))))" 2>/dev/null || echo 0)
+  if [ "${APPROVED_COUNT:-0}" -gt 0 ]; then
+    log "Step 4.5: Executing $APPROVED_COUNT approved delete(s)"
+    TOTAL_DEL=0
+    for JSON in "$DATA_DIR/batch-"[0-9][0-9][0-9]"-classified.json"; do
+      [ -f "$JSON" ] || continue
+      RESULT=$(python "$PROJECT_ROOT/scripts/execute_actions.py" \
+        $PROFILE_FLAG --input "$JSON" --only-deletes --delete-threshold 0.90 \
+        --approved-deletes-file "$APPROVED_FILE" 2>&1)
+      echo "$RESULT" >> "$LOG_FILE"
+      DEL=$(echo "$RESULT" | grep "^    delete:" | grep -oE "[0-9]+$" || true)
+      [ -n "$DEL" ] && TOTAL_DEL=$((TOTAL_DEL + DEL))
+    done
+    log "  ✅ Executed $TOTAL_DEL approved delete(s)"
+    # Clear the snapshot — approvals are one-shot. Already-deleted IDs are
+    # idempotent no-ops anyway, but clearing keeps the queue honest.
+    echo "[]" > "$APPROVED_FILE"
+    log "  ✅ Cleared approved-deletes snapshot"
+  fi
+fi
+
 # ── Step 5: Run profile-specific extractors ───────────────────────────────────
 if [ -f "$PROFILE_FILE" ]; then
   EXTRACTORS=$(python3 -c "import json; exts=json.load(open('$PROFILE_FILE')).get('extractors',[]); print(' '.join(exts))")

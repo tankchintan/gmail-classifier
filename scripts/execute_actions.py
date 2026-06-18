@@ -280,9 +280,16 @@ def execute_batch(
     log_file: Path,
     skip_deletes: bool = True,
     only_deletes: bool = False,
-    dry_run: bool = False
+    dry_run: bool = False,
+    approved_delete_ids: set = None
 ):
-    """Execute a batch of actions and log results."""
+    """Execute a batch of actions and log results.
+
+    approved_delete_ids: if not None, ONLY message_ids in this set are allowed
+    to be deleted. This is the snapshot-approval safety gate — the user reviewed
+    these exact emails in the dashboard. Deletes for any other message_id are
+    skipped even if they otherwise qualify.
+    """
 
     # Idempotency: skip anything already executed in a prior run (per audit
     # logs), unless this is a dry-run. Makes re-runs safe no-ops and prevents
@@ -311,6 +318,9 @@ def execute_batch(
             if confidence < delete_threshold:
                 skipped_deletes += 1
                 continue  # Delete below the higher delete threshold
+            if approved_delete_ids is not None and action.get('message_id') not in approved_delete_ids:
+                skipped_deletes += 1
+                continue  # Snapshot gate: only delete IDs the user explicitly approved
         else:
             if only_deletes:
                 continue  # Delete-only pass: skip archives/labels
@@ -393,6 +403,9 @@ def main():
                         help='Execute ONLY deletes (the separate, explicit delete pass)')
     parser.add_argument('--include-deletes', action='store_true',
                         help='Include deletes alongside archives/labels (default: deletes are skipped)')
+    parser.add_argument('--approved-deletes-file',
+                        help='Path to JSON array of message_ids approved for deletion. '
+                             'When set, ONLY these IDs may be deleted (snapshot safety gate).')
     parser.add_argument('--dry-run', action='store_true',
                         help='Show what WOULD happen without touching Gmail')
     args = parser.parse_args()
@@ -432,6 +445,21 @@ def main():
     only_deletes = args.only_deletes
     skip_deletes = not (args.include_deletes or args.only_deletes)
 
+    # Load the approved-deletes snapshot if provided. This is the safety gate:
+    # only emails the user explicitly approved in the dashboard get deleted.
+    approved_delete_ids = None
+    if args.approved_deletes_file:
+        approved_path = Path(args.approved_deletes_file)
+        if approved_path.exists():
+            try:
+                approved_delete_ids = set(json.loads(approved_path.read_text()))
+                print(f"Approved-deletes snapshot: {len(approved_delete_ids)} message_id(s) cleared for deletion")
+            except (OSError, ValueError) as exc:
+                print(f"WARNING: could not read approved-deletes file ({exc}); treating as empty")
+                approved_delete_ids = set()
+        else:
+            approved_delete_ids = set()  # file missing => nothing approved => delete nothing
+
     # Authenticate (skip for dry-run so we don't need the modify token to preview)
     if args.dry_run:
         print("DRY RUN — not authenticating, no changes will be made.")
@@ -449,7 +477,8 @@ def main():
         log_file,
         skip_deletes=skip_deletes,
         only_deletes=only_deletes,
-        dry_run=args.dry_run
+        dry_run=args.dry_run,
+        approved_delete_ids=approved_delete_ids
     )
 
 if __name__ == '__main__':

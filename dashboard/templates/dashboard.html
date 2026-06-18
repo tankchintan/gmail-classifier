@@ -215,9 +215,20 @@
             <div>
               <h2 class="text-lg font-semibold text-amber-900">&#9888; Deletion review queue</h2>
               <p class="text-xs text-amber-700 mt-1">
-                Review these before the next daily run. Rescue anything you want to keep — the rest will be deleted on confirmation.
+                Review these before the next daily run. Rescue anything you want to keep, then approve the rest — only approved emails are deleted on the next run.
                 <span id="queueCount" class="font-medium text-amber-900"></span>
               </p>
+              <div class="flex items-center gap-3 mt-3">
+                <button id="approveAllBtn"
+                  class="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 transition disabled:opacity-40 disabled:cursor-not-allowed">
+                  ✓ Approve all for deletion
+                </button>
+                <button id="unapproveAllBtn"
+                  class="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 transition disabled:opacity-40 disabled:cursor-not-allowed">
+                  Clear approvals
+                </button>
+                <span id="approvedStatus" class="text-xs font-medium text-red-700"></span>
+              </div>
             </div>
             <div class="flex flex-col sm:flex-row gap-3">
               <input id="searchInput" type="text" placeholder="Filter sender or subject…"
@@ -240,7 +251,7 @@
                 <th class="text-left font-medium px-6 py-3 whitespace-nowrap">Age</th>
                 <th class="text-left font-medium px-6 py-3">Confidence</th>
                 <th class="text-left font-medium px-6 py-3">Rule</th>
-                <th class="text-right font-medium px-6 py-3">Rescue</th>
+                <th class="text-right font-medium px-6 py-3">Actions</th>
               </tr>
             </thead>
             <tbody id="deletionsBody" class="divide-y divide-slate-100"></tbody>
@@ -802,8 +813,9 @@
             </td>
           </tr>`;
         group.items.forEach(d => {
+          const approvedCls = d.approved ? 'bg-red-50' : '';
           html += `
-            <tr data-mid="${esc(d.message_id)}" data-group="${gid}" class="hover:bg-slate-50 transition">
+            <tr data-mid="${esc(d.message_id)}" data-group="${gid}" class="hover:bg-slate-50 transition ${approvedCls}">
               <td class="px-6 py-2 pl-10 text-xs text-slate-400 whitespace-nowrap">${ageText(d.age_days)}</td>
               <td class="px-6 py-2" colspan="2">
                 <div class="text-slate-700 text-sm truncate max-w-[420px]">${esc(d.subject||'(no subject)')}</div>
@@ -811,8 +823,12 @@
               </td>
               <td class="px-6 py-2">${confBadge(d.confidence)}</td>
               <td class="px-6 py-2 text-slate-400 text-xs max-w-[200px] truncate">${esc(d.reasoning||'')}</td>
-              <td class="px-6 py-2 text-right">
-                <button class="rescue-btn inline-flex items-center gap-1 rounded-lg border border-slate-300 px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700 transition"
+              <td class="px-6 py-2 text-right whitespace-nowrap">
+                <button class="approve-btn inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs font-medium transition ${d.approved ? 'border-red-300 bg-red-100 text-red-700' : 'border-slate-300 text-slate-700 hover:bg-red-50 hover:border-red-300 hover:text-red-700'}"
+                  data-mid="${esc(d.message_id)}" data-approved="${d.approved ? '1' : '0'}">
+                  ${d.approved ? '✓ Approved' : 'Approve delete'}
+                </button>
+                <button class="rescue-btn inline-flex items-center gap-1 rounded-lg border border-slate-300 px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700 transition ml-1"
                   data-mid="${esc(d.message_id)}" data-batch="${esc(d.batch)}">
                   🛟 Rescue
                 </button>
@@ -822,6 +838,61 @@
       });
       body.innerHTML = html;
       body.querySelectorAll('.rescue-btn').forEach(btn => btn.addEventListener('click', () => rescue(btn)));
+      body.querySelectorAll('.approve-btn').forEach(btn => btn.addEventListener('click', () => toggleApprove(btn)));
+      updateApprovedStatus();
+    }
+
+    function updateApprovedStatus() {
+      const approvedCount = allDeletions.filter(d => d.approved).length;
+      const statusEl = document.getElementById('approvedStatus');
+      const approveAll = document.getElementById('approveAllBtn');
+      const clearAll = document.getElementById('unapproveAllBtn');
+      if (statusEl) {
+        statusEl.textContent = approvedCount
+          ? `${approvedCount} approved — will be deleted next run`
+          : '';
+      }
+      if (approveAll) approveAll.disabled = !allDeletions.length || approvedCount === allDeletions.length;
+      if (clearAll) clearAll.disabled = !approvedCount;
+    }
+
+    async function postApprove(messageIds, approve) {
+      const res = await fetch(api('/api/approve-deletes'), {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({message_ids: messageIds, approve})
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.ok) throw new Error(data.error || 'HTTP ' + res.status);
+      return data;
+    }
+
+    async function toggleApprove(btn) {
+      const mid = btn.dataset.mid;
+      const currentlyApproved = btn.dataset.approved === '1';
+      btn.disabled = true;
+      try {
+        await postApprove([mid], !currentlyApproved);
+        const d = allDeletions.find(x => x.message_id === mid);
+        if (d) d.approved = !currentlyApproved;
+        renderDeletions();
+        showToast(currentlyApproved ? 'Approval removed' : 'Approved for deletion');
+      } catch (e) {
+        btn.disabled = false;
+        showToast('Failed: ' + e.message, false);
+      }
+    }
+
+    async function approveAllDeletes(approve) {
+      const ids = allDeletions.map(d => d.message_id);
+      if (!ids.length) return;
+      try {
+        await postApprove(ids, approve);
+        allDeletions.forEach(d => d.approved = approve);
+        renderDeletions();
+        showToast(approve ? `Approved all ${ids.length} for deletion` : 'All approvals cleared');
+      } catch (e) {
+        showToast('Failed: ' + e.message, false);
+      }
     }
 
     function toggleGroup(gid) {
@@ -1352,6 +1423,8 @@
       renderDeletions();
     });
     document.getElementById('refreshBtn').addEventListener('click', loadAll);
+    document.getElementById('approveAllBtn').addEventListener('click', () => approveAllDeletes(true));
+    document.getElementById('unapproveAllBtn').addEventListener('click', () => approveAllDeletes(false));
 
     // Sync dropdown from URL on page load
     const urlProfile = new URL(window.location).searchParams.get('profile');
