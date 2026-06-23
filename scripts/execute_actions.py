@@ -78,7 +78,8 @@ def authenticate():
                 with open(TOKEN_FILE, 'wb') as token:
                     pickle.dump(creds, token)
 
-    return build('gmail', 'v1', credentials=creds)
+    from profile_loader import build_gmail_service
+    return build_gmail_service(creds)
 
 def already_executed_ids() -> set:
     """message_ids already SUCCESSFULLY executed per the audit logs.

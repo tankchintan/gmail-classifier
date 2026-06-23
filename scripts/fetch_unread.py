@@ -70,7 +70,8 @@ def authenticate():
                 with open(TOKEN_FILE, 'wb') as token:
                     pickle.dump(creds, token)
 
-    return build('gmail', 'v1', credentials=creds)
+    from profile_loader import build_gmail_service
+    return build_gmail_service(creds)
 
 def get_message_metadata(service, message_id: str) -> Optional[Dict]:
     """Fetch metadata for a single message."""

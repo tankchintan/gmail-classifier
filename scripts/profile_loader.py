@@ -18,6 +18,29 @@ PROFILES_DIR = CANONICAL_ROOT / 'profiles'
 
 DEFAULT_PROFILE = 'personal'
 
+# Socket timeout (seconds) for every Gmail API call. Without this, httplib2's
+# socket has NO timeout — a connection that stalls (e.g. across a laptop
+# sleep/wake) blocks forever, wedging the whole daily run and starving the
+# launchd schedule. With it, a stalled call raises instead of hanging, so the
+# run fails fast and the next scheduled run starts clean.
+GMAIL_HTTP_TIMEOUT = 120
+
+
+def build_gmail_service(creds):
+    """Build a Gmail API client whose HTTP transport has a socket timeout.
+
+    Use this instead of build('gmail', 'v1', credentials=creds) so a hung
+    network call can't block a run indefinitely. Imports the transport libs
+    lazily so this module stays importable for path-only callers.
+    """
+    import httplib2
+    import google_auth_httplib2
+    from googleapiclient.discovery import build
+
+    authed_http = google_auth_httplib2.AuthorizedHttp(
+        creds, http=httplib2.Http(timeout=GMAIL_HTTP_TIMEOUT))
+    return build('gmail', 'v1', http=authed_http)
+
 
 def load_profile(name: str = None) -> dict:
     """Load a profile by name. Returns resolved config dict.

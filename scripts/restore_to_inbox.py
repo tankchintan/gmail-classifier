@@ -32,7 +32,8 @@ def authenticate(token_file: Path):
         else:
             with open(token_file, 'wb') as fh:
                 pickle.dump(creds, fh)
-    return build('gmail', 'v1', credentials=creds)
+    from profile_loader import build_gmail_service
+    return build_gmail_service(creds)
 
 
 def label_id_by_name(service, name):

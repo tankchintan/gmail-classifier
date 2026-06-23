@@ -56,7 +56,8 @@ def _gmail_service(profile):
             print(f"ERROR: Token not found or invalid at {token_path}")
             sys.exit(1)
 
-    return build('gmail', 'v1', credentials=creds)
+    from profile_loader import build_gmail_service
+    return build_gmail_service(creds)
 
 
 def _get_html(payload):

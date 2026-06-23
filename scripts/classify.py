@@ -407,7 +407,8 @@ def _gmail_service():
         else:
             raise RuntimeError(f"Token not valid at {token_path}")
 
-    return build('gmail', 'v1', credentials=creds)
+    from profile_loader import build_gmail_service
+    return build_gmail_service(creds)
 
 
 def _decode_part(part) -> str:
