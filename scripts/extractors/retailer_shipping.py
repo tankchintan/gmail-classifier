@@ -326,20 +326,68 @@ def extract_retailer_shipments(profile, days_back=RETENTION_DAYS):
             parsed['message_id'] = mid
             shipments.append(parsed)
 
-    # Sort: urgency first (arriving_today → out_for_delivery → delivered → shipped),
-    # then most-recent date first within each status tier.
-    shipments.sort(key=lambda s: (
-        STATUS_SORT.get(s['status'], 9),
-        s['date'],
-    ), reverse=False)
-    # Within same status tier keep newest first
-    shipments.sort(key=lambda s: (
-        STATUS_SORT.get(s['status'], 9),
-        [-ord(c) for c in s['date']],
-    ))
+    # ── Collapse multiple emails for the same shipment into one row ──────────
+    # Group key priority: tracking number (most reliable) → order_id → fuzzy
+    # item name (strip trailing ellipsis, lowercase, first 40 chars).
+    # Each group becomes one "shipment" whose status reflects the most-advanced
+    # stage seen, and whose `stages` list records every stage in order so the
+    # dashboard can render a progress bar.
+    STAGE_ORDER = ['shipped', 'out_for_delivery', 'arriving_today', 'delivered']
 
-    print(f"Found {len(shipments)} retailer shipment emails")
-    return {'shipments': shipments}
+    def _group_key(s):
+        if s.get('tracking'):
+            return ('tracking', s['tracking'])
+        if s.get('order_id'):
+            return ('order', s['retailer'] + ':' + s['order_id'])
+        # Normalize item name: strip ellipsis, lowercase, first 40 chars
+        item = (s.get('item') or '').rstrip('.').lower()[:40]
+        return ('item', s['retailer'] + ':' + item)
+
+    groups = {}
+    for s in shipments:
+        key = _group_key(s)
+        if key not in groups:
+            groups[key] = []
+        groups[key].append(s)
+
+    collapsed = []
+    for key, rows in groups.items():
+        # Pick the most-advanced status as the canonical one
+        def _rank(r):
+            try:
+                return STAGE_ORDER.index(r['status'])
+            except ValueError:
+                return -1
+
+        rows_sorted = sorted(rows, key=_rank, reverse=True)
+        best = rows_sorted[0].copy()
+
+        # Collect all distinct stages seen, in chronological order
+        seen_stages = []
+        for stage in STAGE_ORDER:
+            if any(r['status'] == stage for r in rows):
+                seen_stages.append(stage)
+        best['stages'] = seen_stages
+
+        # Use the ETA from the most-recent arriving/out-for-delivery row if available
+        for r in sorted(rows, key=lambda r: r['date'], reverse=True):
+            if r.get('eta') and r['status'] in ('arriving_today', 'out_for_delivery'):
+                best['eta'] = r['eta']
+                break
+
+        collapsed.append(best)
+
+    # Sort collapsed list: in-flight first (not delivered), then by most-recent date
+    def _collapse_sort(s):
+        status_pri = 0 if s['status'] != 'delivered' else 1
+        return (status_pri, s['date'])
+
+    collapsed.sort(key=_collapse_sort, reverse=True)
+    # Stable secondary: within same priority bucket, most-recent first
+    collapsed.sort(key=lambda s: (0 if s['status'] != 'delivered' else 1, s['date']), reverse=True)
+
+    print(f"Found {len(shipments)} retailer shipment emails → {len(collapsed)} shipments after collapsing")
+    return {'shipments': collapsed}
 
 
 def main():
