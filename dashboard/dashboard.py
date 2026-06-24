@@ -965,15 +965,26 @@ def do_approve_deletes(message_ids, approve, profile=None):
 
 
 def build_usps(profile: str = None):
-    """Read the usps-deliveries.json produced by the extractor."""
+    """Read usps-deliveries.json and retailer-shipments.json for the Mail tab."""
     data_dir = _profile_data_dir(profile)
-    path = data_dir / "usps-deliveries.json"
-    if not path.exists():
-        return {"digests": [], "packages": []}
+
+    usps_path = data_dir / "usps-deliveries.json"
     try:
-        return json.loads(path.read_text(encoding="utf-8"))
+        usps = json.loads(usps_path.read_text(encoding="utf-8")) if usps_path.exists() else {}
     except (OSError, ValueError):
-        return {"digests": [], "packages": []}
+        usps = {}
+
+    retail_path = data_dir / "retailer-shipments.json"
+    try:
+        retail = json.loads(retail_path.read_text(encoding="utf-8")) if retail_path.exists() else {}
+    except (OSError, ValueError):
+        retail = {}
+
+    return {
+        "digests":   usps.get("digests", []),
+        "packages":  usps.get("packages", []),
+        "shipments": retail.get("shipments", []),
+    }
 
 
 def build_proofpoint(profile: str = None):
