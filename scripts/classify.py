@@ -95,6 +95,9 @@ def _match_sender_rule(rule: Dict, from_email: str, subject: str, age_days: int,
     subject_match = rule.get('subject_match', '').lower()
     if subject_match and subject_match not in subject:
         return False
+    subject_match2 = rule.get('subject_match2', '').lower()
+    if subject_match2 and subject_match2 not in subject:
+        return False
     min_age = rule.get('min_age_days')
     if min_age is not None and age_days < min_age:
         return False
