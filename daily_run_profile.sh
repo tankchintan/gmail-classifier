@@ -27,6 +27,44 @@ mkdir -p "$LOG_DIR"
 
 log() { echo "[$(date '+%H:%M:%S')] $*" | tee -a "$LOG_FILE"; }
 
+# ── Hang protection ───────────────────────────────────────────────────────────
+# A single stalled Gmail call (socket half-open across a laptop sleep/wake) used
+# to hang a step forever. Because the launchd job is single-instance, the wedged
+# run held the slot and every scheduled fire was skipped for days. The httplib2
+# 120s socket timeout doesn't catch sleep/wake stalls (the OS suspends the timer
+# during sleep), so we bound runtime two ways:
+#   1. Per-step cap — every python step runs under `timeout`, so a stuck call is
+#      SIGTERM'd (then SIGKILL'd) and the run fails fast instead of hanging.
+#   2. Overall watchdog — a backstop that kills this run's whole process tree if
+#      total runtime exceeds the ceiling, no matter where it's stuck.
+STEP_TIMEOUT_SECS="${GMAIL_STEP_TIMEOUT_SECS:-300}"    # 5 min per python step
+RUN_TIMEOUT_SECS="${GMAIL_RUN_TIMEOUT_SECS:-1200}"     # 20 min overall ceiling
+
+TIMEOUT_BIN="$(command -v timeout 2>/dev/null || command -v gtimeout 2>/dev/null || true)"
+[ -z "$TIMEOUT_BIN" ] && [ -x /opt/homebrew/bin/timeout ] && TIMEOUT_BIN=/opt/homebrew/bin/timeout
+if [ -n "$TIMEOUT_BIN" ]; then
+  PYTIMEOUT="$TIMEOUT_BIN --kill-after=30 $STEP_TIMEOUT_SECS"
+else
+  PYTIMEOUT=""   # graceful no-op if neither timeout/gtimeout is installed
+fi
+
+# Recursively SIGKILL a process and all its descendants (no pgid assumptions —
+# avoids touching sibling launchd jobs like the dashboard).
+_kill_tree() {
+  local pid="$1" child
+  for child in $(pgrep -P "$pid" 2>/dev/null); do _kill_tree "$child"; done
+  kill -KILL "$pid" 2>/dev/null || true
+}
+
+# Overall watchdog: started in the background, kills this run's tree if it runs
+# long. Killed on normal exit via the trap below.
+( sleep "$RUN_TIMEOUT_SECS"
+  echo "[$(date '+%H:%M:%S')] ⏰ watchdog: run exceeded ${RUN_TIMEOUT_SECS}s — killing tree" >> "$LOG_FILE"
+  _kill_tree "$$"
+) &
+WATCHDOG_PID=$!
+trap 'kill "$WATCHDOG_PID" 2>/dev/null || true' EXIT
+
 log "=== Gmail Classifier Daily Run (profile: $PROFILE) ==="
 log "Project: $PROJECT_ROOT"
 log "Log: $LOG_FILE"
@@ -55,9 +93,9 @@ BATCH_NUM=$(ls "$DATA_DIR/batch-"[0-9][0-9][0-9]".csv" 2>/dev/null \
 NEXT_BATCH=$(printf "%03d" $((10#${BATCH_NUM:-0} + 1)))
 
 log "Step 1: Fetching new mail → batch-$NEXT_BATCH (limit $FETCH_LIMIT)"
-FETCH_OUTPUT=$(python "$PROJECT_ROOT/scripts/fetch_unread.py" \
-  $PROFILE_FLAG --batch "$NEXT_BATCH" --limit "$FETCH_LIMIT" 2>&1)
-FETCH_EXIT=$?
+FETCH_EXIT=0
+FETCH_OUTPUT=$($PYTIMEOUT python "$PROJECT_ROOT/scripts/fetch_unread.py" \
+  $PROFILE_FLAG --batch "$NEXT_BATCH" --limit "$FETCH_LIMIT" 2>&1) || FETCH_EXIT=$?
 echo "$FETCH_OUTPUT" >> "$LOG_FILE"
 if [ $FETCH_EXIT -eq 0 ]; then
   log "  ✅ Fetch done"
@@ -74,9 +112,9 @@ if [ -f "$NEW_CSV" ]; then
   log "Step 2: Classifying new batch"
   BODY_FLAGS="--with-body"
   [ "$WITH_AI" = "--with-ai" ] && BODY_FLAGS="--with-body --with-ai"
-  python "$PROJECT_ROOT/scripts/classify.py" \
+  $PYTIMEOUT python "$PROJECT_ROOT/scripts/classify.py" \
     $PROFILE_FLAG --input "$NEW_CSV" --output "$NEW_JSON" $BODY_FLAGS \
-    >> "$LOG_FILE" 2>&1 && log "  ✅ Classify done" || log "  ⚠️  Classify failed"
+    >> "$LOG_FILE" 2>&1 && log "  ✅ Classify done" || log "  ⚠️  Classify failed (or timed out)"
 fi
 
 # ── Step 3: Re-classify existing batches (age gates fire on older mail) ───────
@@ -87,9 +125,9 @@ for CSV in "$DATA_DIR/batch-"[0-9][0-9][0-9]".csv"; do
   BATCH=$(basename "$CSV" .csv | sed 's/batch-//')
   [ "$BATCH" = "$NEXT_BATCH" ] && continue
   JSON="$DATA_DIR/batch-$BATCH-classified.json"
-  python "$PROJECT_ROOT/scripts/classify.py" \
+  $PYTIMEOUT python "$PROJECT_ROOT/scripts/classify.py" \
     $PROFILE_FLAG --input "$CSV" --output "$JSON" \
-    >> "$LOG_FILE" 2>&1
+    >> "$LOG_FILE" 2>&1 || log "  ⚠️  Re-classify batch-$BATCH failed (or timed out, continuing)"
   RECLASSIFIED=$((RECLASSIFIED + 1))
 done
 log "  ✅ Re-classified $RECLASSIFIED batches"
@@ -99,8 +137,10 @@ log "Step 4: Executing safe actions (confidence >= 0.75, deletes skipped)"
 TOTAL_NEW=0
 for JSON in "$DATA_DIR/batch-"[0-9][0-9][0-9]"-classified.json"; do
   [ -f "$JSON" ] || continue
-  RESULT=$(python "$PROJECT_ROOT/scripts/execute_actions.py" \
-    $PROFILE_FLAG --input "$JSON" --confidence-threshold 0.75 2>&1)
+  RESULT=$($PYTIMEOUT python "$PROJECT_ROOT/scripts/execute_actions.py" \
+    $PROFILE_FLAG --input "$JSON" --confidence-threshold 0.75 2>&1) || \
+    RESULT="$RESULT
+  ⚠️  execute_actions timed out/failed on $(basename "$JSON") (continuing)"
   echo "$RESULT" >> "$LOG_FILE"
   NEW=$(echo "$RESULT" | grep "^  Successful:" | grep -v ": 0$" | grep -oE "[0-9]+$" || true)
   [ -n "$NEW" ] && TOTAL_NEW=$((TOTAL_NEW + NEW))
@@ -118,9 +158,11 @@ if [ -f "$APPROVED_FILE" ]; then
     TOTAL_DEL=0
     for JSON in "$DATA_DIR/batch-"[0-9][0-9][0-9]"-classified.json"; do
       [ -f "$JSON" ] || continue
-      RESULT=$(python "$PROJECT_ROOT/scripts/execute_actions.py" \
+      RESULT=$($PYTIMEOUT python "$PROJECT_ROOT/scripts/execute_actions.py" \
         $PROFILE_FLAG --input "$JSON" --only-deletes --delete-threshold 0.90 \
-        --approved-deletes-file "$APPROVED_FILE" 2>&1)
+        --approved-deletes-file "$APPROVED_FILE" 2>&1) || \
+        RESULT="$RESULT
+  ⚠️  approved-delete step timed out/failed on $(basename "$JSON") (continuing)"
       echo "$RESULT" >> "$LOG_FILE"
       DEL=$(echo "$RESULT" | grep "^    delete:" | grep -oE "[0-9]+$" || true)
       [ -n "$DEL" ] && TOTAL_DEL=$((TOTAL_DEL + DEL))
@@ -148,8 +190,8 @@ for EXT in $EXTRACTORS; do
   fi
   if [ -f "$SCRIPT" ]; then
     log "Step 5: Running extractor: $EXT"
-    python "$SCRIPT" $PROFILE_FLAG \
-      >> "$LOG_FILE" 2>&1 && log "  ✅ $EXT done" || log "  ⚠️  $EXT failed (continuing)"
+    $PYTIMEOUT python "$SCRIPT" $PROFILE_FLAG \
+      >> "$LOG_FILE" 2>&1 && log "  ✅ $EXT done" || log "  ⚠️  $EXT failed/timed out (continuing)"
   fi
 done
 
