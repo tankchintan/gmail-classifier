@@ -38,7 +38,8 @@ log() { echo "[$(date '+%H:%M:%S')] $*" | tee -a "$LOG_FILE"; }
 #   2. Overall watchdog — a backstop that kills this run's whole process tree if
 #      total runtime exceeds the ceiling, no matter where it's stuck.
 STEP_TIMEOUT_SECS="${GMAIL_STEP_TIMEOUT_SECS:-300}"    # 5 min per python step
-RUN_TIMEOUT_SECS="${GMAIL_RUN_TIMEOUT_SECS:-1200}"     # 20 min overall ceiling
+RUN_TIMEOUT_SECS="${GMAIL_RUN_TIMEOUT_SECS:-1800}"     # 30 min overall ceiling
+                                                       # (healthy work run ~13.5 min over 329 batches)
 
 TIMEOUT_BIN="$(command -v timeout 2>/dev/null || command -v gtimeout 2>/dev/null || true)"
 [ -z "$TIMEOUT_BIN" ] && [ -x /opt/homebrew/bin/timeout ] && TIMEOUT_BIN=/opt/homebrew/bin/timeout
