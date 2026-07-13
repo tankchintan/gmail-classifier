@@ -762,6 +762,7 @@ def build_digest(profile: str = None):
     done_ids = executed_message_ids(profile)
     still_in_inbox = []
     pending_review = []
+    seen_ids: set = set()  # a kept email recurs in every batch until cleared — show it once
 
     for batch_path in sorted(glob.glob(str(profile_data_dir / "batch-*-classified.json"))):
         if 'temp' in batch_path or 'janfeb' in batch_path:
@@ -776,6 +777,9 @@ def build_digest(profile: str = None):
                 continue
             if entry.get("suggested_action") != "keep":
                 continue
+            if mid in seen_ids:
+                continue
+            seen_ids.add(mid)
             meta = all_csv_rows.get(mid, {})
             age = compute_age_days(meta.get("date", ""))
             row = {

@@ -347,10 +347,15 @@ def execute_batch(
 
     # Dry-runs do NOT write to the audit log (the dashboard counts log lines
     # as real executions; a dry-run must never inflate that).
-    if dry_run:
+    #
+    # Nothing to execute → don't create a file at all. Empty 0-byte logs used to
+    # pile up (one per batch per run) into hundreds of thousands of files, which
+    # the dashboard globs on every request — slowing page loads to a crawl.
+    if dry_run or not filtered_actions:
         import io
         f = io.StringIO()
-        log_file_note = '(dry-run — not written to disk)'
+        log_file_note = ('(dry-run — not written to disk)' if dry_run
+                         else '(no actions — no log written)')
     else:
         LOGS_DIR.mkdir(exist_ok=True)
         f = open(log_file, 'w', encoding='utf-8')
