@@ -57,26 +57,9 @@ def authenticate():
                     with open(TOKEN_FILE, 'wb') as token:
                         pickle.dump(creds, token)
             except Exception as e:
-                print(f"Token refresh failed: {e}")
-                print("Re-authenticating...")
-                creds = None
-
-        if not creds:
-            if not CREDENTIALS_FILE.exists():
-                print(f"ERROR: {CREDENTIALS_FILE} not found!")
-                print("Please download OAuth credentials from Google Cloud Console")
+                print(f"ERROR: Token refresh failed: {e}")
+                print("Run the OAuth setup script manually to re-authenticate.")
                 sys.exit(1)
-
-            flow = InstalledAppFlow.from_client_secrets_file(
-                str(CREDENTIALS_FILE), SCOPES)
-            creds = flow.run_local_server(port=0)
-
-            # Save credentials for next run
-            if str(TOKEN_FILE).endswith('.json'):
-                TOKEN_FILE.write_text(creds.to_json())
-            else:
-                with open(TOKEN_FILE, 'wb') as token:
-                    pickle.dump(creds, token)
 
     from profile_loader import build_gmail_service
     return build_gmail_service(creds)
