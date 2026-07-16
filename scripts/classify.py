@@ -777,6 +777,79 @@ def _infer_label(from_email: str, reasoning: str) -> str:
     return 'Misc'
 
 
+def user_participated_in_thread(service, thread_id: str) -> bool:
+    """True if the user sent at least one message in this thread.
+
+    A thread that contains a message with the SENT label is an active human
+    conversation the user initiated or replied into — an auto-ack or a human
+    reply landing there should never be silently archived. This is the precise
+    signal (as opposed to is_reply, which only means the subject starts 'Re:').
+    """
+    try:
+        thread = service.users().threads().get(
+            userId='me', id=thread_id, format='minimal').execute()
+        for m in thread.get('messages', []):
+            if 'SENT' in m.get('labelIds', []):
+                return True
+    except Exception:
+        pass
+    return False
+
+
+def apply_thread_participation_guardrail(classifications: List[Dict],
+                                         email_meta_map: Dict) -> List[Dict]:
+    """Force-keep any email headed to archive when the user sent into its thread.
+
+    Kills a whole class of AI mistakes: replies in a conversation the user
+    started (e.g. a professor answering a question, an auto-ack for a petition
+    the user filed) getting archived because the latest message reads as
+    'transactional / no action needed'.
+
+    To bound Gmail API calls, only threads that are BOTH (a) headed to archive
+    and (b) replies (is_reply) are checked. A notification thread the user never
+    replied to has no SENT message, so it is unaffected even if checked.
+    """
+    def _is_archiving(c: Dict) -> bool:
+        if c.get('suggested_action') == 'archive':
+            return True
+        return c.get('suggested_action') == 'label' and c.get('archive_after_label', False)
+
+    def _is_reply(mid: str) -> bool:
+        return str(email_meta_map.get(mid, {}).get('is_reply', '')).strip().lower() == 'true'
+
+    candidates = [c for c in classifications
+                  if _is_archiving(c) and _is_reply(c['message_id'])]
+    if not candidates:
+        return classifications
+
+    try:
+        service = _gmail_service()
+    except Exception as e:
+        print(f"  ⚠️  Thread-participation guardrail skipped (auth failed: {e})")
+        return classifications
+
+    by_id = {c['message_id']: c for c in classifications}
+    rescued = 0
+    for c in candidates:
+        if user_participated_in_thread(service, c['thread_id']):
+            by_id[c['message_id']] = {
+                **c,
+                'suggested_action': 'keep',
+                'label': None,
+                'archive_after_label': False,
+                'mark_read': False,
+                'confidence': 0.90,
+                'reasoning': 'User sent into this thread — active conversation, keep '
+                             '(was: ' + c.get('reasoning', '')[:120] + ')',
+            }
+            rescued += 1
+
+    if rescued:
+        print(f"  🛟 Thread-participation guardrail: kept {rescued} email(s) "
+              f"in threads the user replied to (checked {len(candidates)})")
+    return list(by_id.values())
+
+
 def _enrich_archives(classifications: List[Dict], email_meta_map: Dict) -> List[Dict]:
     """Convert bare archive actions into label+archive so emails always get a tag."""
     enriched = []
@@ -837,6 +910,12 @@ def classify_batch(input_csv: Path, output_json: Path, with_body: bool = False,
 
     # Enrich bare archive actions with a label so emails always get tagged
     classifications = _enrich_archives(classifications, email_meta_map)
+
+    # Guardrail: never archive a reply in a thread the user sent into. Only runs
+    # when we already have Gmail auth (body/AI pass) — the rule-only path never
+    # archives active-conversation replies with high enough confidence to matter.
+    if with_body or with_ai:
+        classifications = apply_thread_participation_guardrail(classifications, email_meta_map)
 
     # Save to JSON
     with open(output_json, 'w', encoding='utf-8') as f:
